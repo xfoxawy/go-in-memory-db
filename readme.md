@@ -27,8 +27,17 @@ git clone
 And 
 
 ```
-go run in-memory-db.go
+go run in-memory-db.go --port=8080 (default is 8080)
 ```
+OR
+```
+go build in-memory-db.go
+```
+then 
+```
+./in-memory-db --port=8080 (default is 8080)
+```
+
 
 then through Telnet or any TCP connection
 ```
