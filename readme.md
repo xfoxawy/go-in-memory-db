@@ -71,14 +71,18 @@ to Delete
 DEL key
 ```
 
-and Help
+to clear memory
 ```
-HELP
+CLEAR
 ```
 
 to close the connection
 ```
 BYE
+```
+and Help
+```
+HELP
 ```
 
 ## License

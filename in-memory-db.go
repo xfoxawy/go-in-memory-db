@@ -104,6 +104,11 @@ func handle(conn net.Conn) {
 			} else {
 				write(conn, "NIL\n")
 			}
+		case "CLEAR":
+			for k := range data {
+				delete(data, k)
+			}
+			write(conn, "OK\n")
 		case "BYE":
 			conn.Close()
 
