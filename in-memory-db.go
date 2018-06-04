@@ -2,15 +2,26 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
 	"strings"
 )
 
 func main() {
-	li, err := net.Listen("tcp", ":8080")
+	portFlag := flag.String("port", "8080", "connection port")
+
+	flag.Parse()
+
+	port := fmt.Sprintf(":%s", *portFlag)
+
+	fmt.Println("initiating DB connection on port: " + port)
+
+	li, err := net.Listen("tcp", port)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -28,6 +39,8 @@ func main() {
 func handle(conn net.Conn) {
 	defer conn.Close()
 
+	log.SetOutput(os.Stdout)
+
 	help := "\n In Memory DB \n\n" +
 		"Use: \n" +
 		"SET key value \n" +
@@ -36,6 +49,7 @@ func handle(conn net.Conn) {
 		"Example: \n" +
 		"SET fav peanutbutter \n" +
 		"GET fav \n" +
+		"EXIST key \n" +
 		"HELP ??\n"
 
 	// read & write
@@ -47,27 +61,54 @@ func handle(conn net.Conn) {
 		fs := strings.Fields(ln)
 
 		switch fs[0] {
+
 		case "HELP":
 			write(conn, help)
+
 		case "GET":
 			k := fs[1]
-			v := data[k]
-			write(conn, v+"\n")
+			if v, ok := data[k]; ok {
+				write(conn, v+"\n")
+			} else {
+				write(conn, "NIL\n")
+			}
+
 		case "SET":
 			if len(fs) != 3 {
-				fmt.Fprintf(conn, "UNEXPECTED VALUE")
+				write(conn, "UNEXPECTED VALUE\n")
 				continue
 			}
 			k := fs[1]
 			v := fs[2]
 			data[k] = v
 			write(conn, "OK\n")
+
 		case "DEL":
 			k := fs[1]
 			delete(data, k)
 			write(conn, "OK\n")
+
+		case "ISSET":
+			k := fs[1]
+			if _, ok := data[k]; ok {
+				write(conn, "TRUE\n")
+			} else {
+				write(conn, "FALSE\n")
+			}
+		case "DUMP":
+			if len(data) > 0 {
+				for k, v := range data {
+					s := fmt.Sprintf("%s %s\n", k, v)
+					write(conn, s)
+				}
+			} else {
+				write(conn, "NIL\n")
+			}
+		case "BYE":
+			conn.Close()
+
 		default:
-			write(conn, "wait for more \n\n")
+			write(conn, "UNKNOWN CMD \n\n")
 		}
 	}
 }

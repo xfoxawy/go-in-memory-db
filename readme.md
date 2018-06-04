@@ -41,18 +41,36 @@ to SET data
 ```
 SET key value
 ```
+
 to GET data
 ```
 GET key
 ```
+
+to check if key isset
+```
+ISSET key
+```
+
+to dump data to screen
+```
+DUMP
+```
+
 to Delete
 ```
 DEL key
 ```
+
 and Help
 ```
 HELP
-``` 
+```
+
+to close the connection
+```
+BYE
+```
 
 ## License
 
