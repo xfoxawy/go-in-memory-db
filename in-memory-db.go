@@ -15,7 +15,7 @@ import (
 
 const port string = "8080"
 
-type database interface {
+type Database interface {
 	set(k string, v string) bool
 	get(k string) (string, error)
 	del(k string) bool
@@ -23,57 +23,45 @@ type database interface {
 	dump() string
 	name() string
 	clear()
-	switchDb(name string) database
 }
 
-type masterInstance struct {
+type database struct {
 	namespace string
 	public    bool
 	data      map[string]string
-	sub       map[string]*subInstance
-}
-
-type subInstance struct {
-	namespace string
-	public    bool
-	data      map[string]string
-	parent    *masterInstance
 }
 
 type client struct {
 	address   string
 	conn      net.Conn
-	dbpointer database
+	dbpointer Database
 }
 
-/**
-MasterDb methods
-**/
-func (db *masterInstance) set(k string, v string) bool {
+func (db *database) set(k string, v string) bool {
 	db.data[k] = v
 	return true
 }
 
-func (db *masterInstance) get(k string) (string, error) {
+func (db *database) get(k string) (string, error) {
 	if v, ok := db.data[k]; ok {
 		return v, nil
 	}
 	return "", errors.New("not found")
 }
 
-func (db *masterInstance) del(k string) bool {
+func (db *database) del(k string) bool {
 	delete(db.data, k)
 	return true
 }
 
-func (db *masterInstance) isset(k string) bool {
+func (db *database) isset(k string) bool {
 	if _, ok := db.data[k]; ok {
 		return true
 	}
 	return false
 }
 
-func (db *masterInstance) dump() string {
+func (db *database) dump() string {
 	var content bytes.Buffer
 	if len(db.data) > 0 {
 		for k, v := range db.data {
@@ -83,110 +71,33 @@ func (db *masterInstance) dump() string {
 	return content.String()
 }
 
-func (db *masterInstance) clear() {
+func (db *database) clear() {
 	for k := range db.data {
-		delete(db.data, k)
+		go delete(db.data, k)
 	}
 }
 
-func (db *masterInstance) name() string {
+func (db *database) name() string {
 	return db.namespace
 }
 
-func (db *masterInstance) switchDb(name string) database {
-	if name == "main" || name == "master" {
-		return db
-	}
-
-	if _, ok := db.sub[name]; ok == false {
-		db.sub[name] = createSubDB(db, name, true)
-	}
-	return db.sub[name]
-}
-
-/**
-SubDb Methods
-**/
-func (db *subInstance) set(k string, v string) bool {
-	db.data[k] = v
-	return true
-}
-
-func (db *subInstance) get(k string) (string, error) {
-	if v, ok := db.data[k]; ok {
-		return v, nil
-	}
-	return "", errors.New("not found")
-}
-
-func (db *subInstance) del(k string) bool {
-	delete(db.data, k)
-	return true
-}
-
-func (db *subInstance) isset(k string) bool {
-	if _, ok := db.data[k]; ok {
-		return true
-	}
-	return false
-}
-
-func (db *subInstance) dump() string {
-	var content bytes.Buffer
-	if len(db.data) > 0 {
-		for k, v := range db.data {
-			content.WriteString(fmt.Sprintf("%s %s\n", k, v))
-		}
-	}
-	return content.String()
-}
-
-func (db *subInstance) clear() {
-	for k := range db.data {
-		delete(db.data, k)
-	}
-}
-
-func (db *subInstance) name() string {
-	return db.namespace
-}
-
-func (db *subInstance) switchDb(name string) database {
-	masterDb := db.parent
-
-	if name == "main" || name == "master" {
-		return masterDb
-	}
-
-	if _, ok := masterDb.sub[name]; ok == false {
-		masterDb.sub[name] = createSubDB(masterDb, name, true)
-	}
-	return masterDb.sub[name]
-
-}
-
-func createMasterDB() *masterInstance {
-	db := masterInstance{
+func createMasterDB() *database {
+	db := database{
 		"master",
 		true,
 		make(map[string]string),
-		make(map[string]*subInstance),
 	}
 	return &db
 }
 
-func createSubDB(master *masterInstance, name string, visibility bool) *subInstance {
-	db := subInstance{
-		name,
-		visibility,
-		make(map[string]string),
-		master,
-	}
-	return &db
-}
-
+// MasterDb placeholder
 var (
 	MasterDb = createMasterDB()
+)
+
+// All Databases
+var (
+	Databases = map[string]*database{"master": createMasterDB()}
 )
 
 var (
@@ -239,7 +150,6 @@ func handle(c *client) {
 
 	log.SetOutput(os.Stdout)
 
-	// create new scanner
 	scanner := bufio.NewScanner(c.conn)
 
 	for scanner.Scan() {
@@ -254,16 +164,28 @@ func handle(c *client) {
 				write(c.conn, help())
 
 			case "set":
-				if len(fs) != 3 {
-					write(c.conn, "UNEXPECTED VALUE")
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				v := fs[2]
+
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+
 				c.dbpointer.set(k, v)
 				write(c.conn, "OK")
 
 			case "get":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
 				k := fs[1]
 				v, err := c.dbpointer.get(k)
 				if err != nil {
@@ -273,11 +195,19 @@ func handle(c *client) {
 				write(c.conn, v)
 
 			case "del":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
 				k := fs[1]
 				c.dbpointer.del(k)
 				write(c.conn, "OK")
 
 			case "isset":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
 				k := fs[1]
 				if c.dbpointer.isset(k) {
 					write(c.conn, "TRUE")
@@ -297,14 +227,27 @@ func handle(c *client) {
 				write(c.conn, c.dbpointer.name())
 
 			case "use":
-				dbName := fs[1]
-				c.dbpointer = c.dbpointer.switchDb(dbName)
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				key := fs[1]
+				if db, ok := Databases[key]; ok {
+					c.dbpointer = db
+				} else {
+					Databases[key] = &database{
+						key,
+						true,
+						make(map[string]string),
+					}
+					c.dbpointer = Databases[key]
+				}
 
-			case "show":
+			case "show", "ls":
 				var content bytes.Buffer
-				for name, _ := range MasterDb.sub {
+				for name := range Databases {
 					if name == c.dbpointer.name() {
-						name = fmt.Sprintf("*%s\n", name)
+						name = fmt.Sprintf("-> %s\n", name)
 					} else {
 						name = fmt.Sprintf("%s\n", name)
 					}
