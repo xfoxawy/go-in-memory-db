@@ -72,9 +72,11 @@ func (db *database) dump() string {
 }
 
 func (db *database) clear() {
-	for k := range db.data {
-		go delete(db.data, k)
-	}
+	go func() {
+		for k := range db.data {
+			delete(db.data, k)
+		}
+	}()
 }
 
 func (db *database) name() string {
