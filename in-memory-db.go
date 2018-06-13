@@ -284,6 +284,9 @@ func help() string {
 		"GET key \n" +
 		"DEL key \n" +
 		"ISSET key \n" +
+		"USE name\n" +
+		"WHICH \n" +
+		"SHOW \n" +
 		"CLEAR \n" +
 		"DUMP \n" +
 		"BYE \n" +

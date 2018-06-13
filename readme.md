@@ -76,6 +76,25 @@ to clear memory
 CLEAR
 ```
 
+supporting namespacing, you can switch databases by using
+```
+USE key
+```
+to switch back to `master` database simply run
+```
+USE master
+```
+
+to list all open databases
+```
+SHOW 
+```
+
+and to get which is the current database
+```
+WHICH
+``` 
+
 to close the connection
 ```
 BYE
