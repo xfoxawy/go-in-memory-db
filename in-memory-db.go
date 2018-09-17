@@ -17,6 +17,8 @@ const port string = "8080"
 
 type Database interface {
 	set(k string, v string) bool
+	setList(k string ,v []string) bool
+	getList(k string) ([]string,error)
 	get(k string) (string, error)
 	del(k string) bool
 	isset(k string) bool
@@ -29,6 +31,7 @@ type database struct {
 	namespace string
 	public    bool
 	data      map[string]string
+	dataList  map[string][]string
 }
 
 type client struct {
@@ -40,6 +43,19 @@ type client struct {
 func (db *database) set(k string, v string) bool {
 	db.data[k] = v
 	return true
+}
+
+func (db *database) setList(k string , v []string) bool {
+	db.dataList[k] = v
+	return true
+}
+
+func (db *database) getList(k string) ([]string , error) {
+	if v, ok := db.dataList[k];ok {
+		return v, nil
+	}
+	var empty []string
+	return empty, errors.New("not foune")
 }
 
 func (db *database) get(k string) (string, error) {
@@ -56,6 +72,9 @@ func (db *database) del(k string) bool {
 
 func (db *database) isset(k string) bool {
 	if _, ok := db.data[k]; ok {
+		return true
+	}
+	if _, ok := db.dataList[k]; ok {
 		return true
 	}
 	return false
@@ -88,6 +107,7 @@ func createMasterDB() *database {
 		"master",
 		true,
 		make(map[string]string),
+		make(map[string][]string),
 	}
 	return &db
 }
@@ -165,6 +185,37 @@ func handle(c *client) {
 			case "help":
 				write(c.conn, help())
 
+			case "list":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+
+				v := strings.Fields(strings.Join(fs[2:], " "))
+
+				fmt.Println(k , v)
+
+				c.dbpointer.setList(k, v)
+				write(c.conn, "OK")
+
+			case "getlist":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v, err := c.dbpointer.getList(k)
+				if err != nil {
+					write(c.conn, "NIL")
+					break
+				}
+
+				for i := 0; i < len(v); i++ {
+					write(c.conn , v[i])
+				}
+
 			case "set":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
@@ -241,6 +292,8 @@ func handle(c *client) {
 						key,
 						true,
 						make(map[string]string),
+
+						make(map[string][]string),
 					}
 					c.dbpointer = Databases[key]
 				}
