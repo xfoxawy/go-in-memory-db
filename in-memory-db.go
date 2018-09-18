@@ -19,6 +19,7 @@ type Database interface {
 	set(k string, v string) bool
 	setList(k string ,v []string) bool
 	getList(k string) ([]string,error)
+	delList(k string) bool
 	get(k string) (string, error)
 	del(k string) bool
 	isset(k string) bool
@@ -56,6 +57,11 @@ func (db *database) getList(k string) ([]string , error) {
 	}
 	var empty []string
 	return empty, errors.New("not found")
+}
+
+func (db *database) delList(k string) bool {
+	delete(db.dataList,k)
+	return true
 }
 
 func (db *database) get(k string) (string, error) {
@@ -215,6 +221,15 @@ func handle(c *client) {
 				for i := 0; i < len(v); i++ {
 					write(c.conn , v[i])
 				}
+
+			case "dlist":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				c.dbpointer.delList(k)
+				write(c.conn , "OK")
 
 			case "set":
 				if len(fs) < 2 {
