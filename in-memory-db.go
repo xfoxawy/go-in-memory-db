@@ -20,6 +20,7 @@ type Database interface {
 	setList(k string ,v []string) bool
 	getList(k string) ([]string,error)
 	delList(k string) bool
+	lPush(k string ,v string) []string
 	get(k string) (string, error)
 	del(k string) bool
 	isset(k string) bool
@@ -62,6 +63,11 @@ func (db *database) getList(k string) ([]string , error) {
 func (db *database) delList(k string) bool {
 	delete(db.dataList,k)
 	return true
+}
+
+func (db *database) lPush(k string , v string) []string {
+	db.dataList[k] = append(db.dataList[k] , v)
+	return db.dataList[k]
 }
 
 func (db *database) get(k string) (string, error) {
@@ -201,8 +207,6 @@ func handle(c *client) {
 
 				v := strings.Fields(strings.Join(fs[2:], " "))
 
-				fmt.Println(k , v)
-
 				c.dbpointer.setList(k, v)
 				write(c.conn, "OK")
 
@@ -229,6 +233,25 @@ func handle(c *client) {
 				}
 				k := fs[1]
 				c.dbpointer.delList(k)
+				write(c.conn , "OK")
+
+			case "lpush":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+
+				new_list := c.dbpointer.lPush(k , v)
+
 				write(c.conn , "OK")
 
 			case "set":
