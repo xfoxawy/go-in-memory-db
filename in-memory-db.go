@@ -55,7 +55,7 @@ func (db *database) getList(k string) ([]string , error) {
 		return v, nil
 	}
 	var empty []string
-	return empty, errors.New("not foune")
+	return empty, errors.New("not found")
 }
 
 func (db *database) get(k string) (string, error) {
@@ -185,7 +185,7 @@ func handle(c *client) {
 			case "help":
 				write(c.conn, help())
 
-			case "list":
+			case "slist":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
@@ -200,7 +200,7 @@ func handle(c *client) {
 				c.dbpointer.setList(k, v)
 				write(c.conn, "OK")
 
-			case "getlist":
+			case "glist":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
