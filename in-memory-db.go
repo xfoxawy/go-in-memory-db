@@ -20,7 +20,8 @@ type Database interface {
 	setList(k string ,v []string) bool
 	getList(k string) ([]string,error)
 	delList(k string) bool
-	lPush(k string ,v string) []string
+	lPush(k string ,v string) bool
+	lDel(k string ,v string) bool
 	get(k string) (string, error)
 	del(k string) bool
 	isset(k string) bool
@@ -65,9 +66,24 @@ func (db *database) delList(k string) bool {
 	return true
 }
 
-func (db *database) lPush(k string , v string) []string {
+func (db *database) lPush(k string , v string) bool {
 	db.dataList[k] = append(db.dataList[k] , v)
-	return db.dataList[k]
+	return true
+}
+
+func (db *database) lDel(k string ,v string) bool {
+	i := indexOf(db.dataList[k] , v)
+	db.dataList[k] = append(db.dataList[k][:i], db.dataList[k][i+1:]...)
+	return true
+}
+
+func indexOf(list []string , value string) int {
+	for k ,v := range list {
+		if v == value {
+			return k
+		}
+	}
+	return -1
 }
 
 func (db *database) get(k string) (string, error) {
@@ -250,7 +266,26 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				new_list := c.dbpointer.lPush(k , v)
+				c.dbpointer.lPush(k , v)
+
+				write(c.conn , "OK")
+
+			case "ldel":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+
+				c.dbpointer.lDel(k , v)
 
 				write(c.conn , "OK")
 
