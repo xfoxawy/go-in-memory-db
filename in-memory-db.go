@@ -17,11 +17,6 @@ const port string = "8080"
 
 type Database interface {
 	set(k string, v string) bool
-	setList(k string ,v []string) bool
-	getList(k string) ([]string,error)
-	delList(k string) bool
-	lPush(k string ,v string) bool
-	lDel(k string ,v string) bool
 	get(k string) (string, error)
 	del(k string) bool
 	isset(k string) bool
@@ -41,6 +36,7 @@ type client struct {
 	address   string
 	conn      net.Conn
 	dbpointer Database
+	listpointer List
 }
 
 func (db *database) set(k string, v string) bool {
@@ -48,34 +44,6 @@ func (db *database) set(k string, v string) bool {
 	return true
 }
 
-func (db *database) setList(k string , v []string) bool {
-	db.dataList[k] = v
-	return true
-}
-
-func (db *database) getList(k string) ([]string , error) {
-	if v, ok := db.dataList[k];ok {
-		return v, nil
-	}
-	var empty []string
-	return empty, errors.New("not found")
-}
-
-func (db *database) delList(k string) bool {
-	delete(db.dataList,k)
-	return true
-}
-
-func (db *database) lPush(k string , v string) bool {
-	db.dataList[k] = append(db.dataList[k] , v)
-	return true
-}
-
-func (db *database) lDel(k string ,v string) bool {
-	i := indexOf(db.dataList[k] , v)
-	db.dataList[k] = append(db.dataList[k][:i], db.dataList[k][i+1:]...)
-	return true
-}
 
 func indexOf(list []string , value string) int {
 	for k ,v := range list {
@@ -140,6 +108,11 @@ func createMasterDB() *database {
 	return &db
 }
 
+func createLists(db *database) *list {
+	return &list{db}
+}
+
+
 // MasterDb placeholder
 var (
 	MasterDb = createMasterDB()
@@ -161,6 +134,7 @@ func resolveClinet(conn net.Conn) *client {
 			addr,
 			conn,
 			MasterDb,
+			createLists(MasterDb),
 		}
 	}
 	return Connections[addr]
@@ -223,7 +197,7 @@ func handle(c *client) {
 
 				v := strings.Fields(strings.Join(fs[2:], " "))
 
-				c.dbpointer.setList(k, v)
+				c.listpointer.setList(k, v)
 				write(c.conn, "OK")
 
 			case "glist":
@@ -232,7 +206,7 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				v, err := c.dbpointer.getList(k)
+				v, err := c.listpointer.getList(k)
 				if err != nil {
 					write(c.conn, "NIL")
 					break
@@ -248,7 +222,7 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				c.dbpointer.delList(k)
+				c.listpointer.delList(k)
 				write(c.conn , "OK")
 
 			case "lpush":
@@ -266,7 +240,7 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				c.dbpointer.lPush(k , v)
+				c.listpointer.lPush(k , v)
 
 				write(c.conn , "OK")
 
@@ -285,7 +259,7 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				c.dbpointer.lDel(k , v)
+				c.listpointer.lDel(k , v)
 
 				write(c.conn , "OK")
 
