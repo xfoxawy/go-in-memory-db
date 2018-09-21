@@ -22,6 +22,7 @@ type Database interface {
 	isset(k string) bool
 	dump() string
 	name() string
+	getDataList() map[string]List
 	clear()
 }
 
@@ -29,14 +30,13 @@ type database struct {
 	namespace string
 	public    bool
 	data      map[string]string
-	dataList  map[string][]string
+	dataList  map[string]List
 }
 
 type client struct {
 	address   string
 	conn      net.Conn
 	dbpointer Database
-	listpointer List
 }
 
 func (db *database) set(k string, v string) bool {
@@ -98,18 +98,18 @@ func (db *database) name() string {
 	return db.namespace
 }
 
+func (db *database) getDataList() map[string]List {
+	return db.dataList
+}
+
 func createMasterDB() *database {
 	db := database{
 		"master",
 		true,
 		make(map[string]string),
-		make(map[string][]string),
+		make(map[string]List),
 	}
 	return &db
-}
-
-func createLists(db *database) *list {
-	return &list{db}
 }
 
 
@@ -134,7 +134,6 @@ func resolveClinet(conn net.Conn) *client {
 			addr,
 			conn,
 			MasterDb,
-			createLists(MasterDb),
 		}
 	}
 	return Connections[addr]
@@ -196,8 +195,7 @@ func handle(c *client) {
 
 
 				v := strings.Fields(strings.Join(fs[2:], " "))
-
-				c.listpointer.setList(k, v)
+				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].setList(v)
 				write(c.conn, "OK")
 
 			case "glist":
@@ -206,8 +204,8 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				v, err := c.listpointer.getList(k)
-				if err != nil {
+				v := c.dbpointer.getDataList()[k].getList()
+				if len(v) < 1 {
 					write(c.conn, "NIL")
 					break
 				}
@@ -222,10 +220,10 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				c.listpointer.delList(k)
+				delete(c.dbpointer.getDataList() , k)
 				write(c.conn , "OK")
 
-			case "lpush":
+			case "push":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
@@ -240,26 +238,18 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				c.listpointer.lPush(k , v)
+				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].push(v)
 
 				write(c.conn , "OK")
 
-			case "ldel":
+			case "pop":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
 
-				var v string
-
-				if len(fs) == 2 {
-					v = "NIL"
-				} else {
-					v = strings.Join(fs[2:], "")
-				}
-
-				c.listpointer.lDel(k , v)
+				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].pop()
 
 				write(c.conn , "OK")
 
@@ -340,7 +330,7 @@ func handle(c *client) {
 						true,
 						make(map[string]string),
 
-						make(map[string][]string),
+						make(map[string]List),
 					}
 					c.dbpointer = Databases[key]
 				}
