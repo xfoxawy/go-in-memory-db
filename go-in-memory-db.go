@@ -44,9 +44,8 @@ func (db *database) set(k string, v string) bool {
 	return true
 }
 
-
-func indexOf(list []string , value string) int {
-	for k ,v := range list {
+func indexOf(list []string, value string) int {
+	for k, v := range list {
 		if v == value {
 			return k
 		}
@@ -111,7 +110,6 @@ func createMasterDB() *database {
 	}
 	return &db
 }
-
 
 // MasterDb placeholder
 var (
@@ -193,7 +191,6 @@ func handle(c *client) {
 				}
 				k := fs[1]
 
-
 				v := strings.Fields(strings.Join(fs[2:], " "))
 				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].setList(v)
 				write(c.conn, "OK")
@@ -211,7 +208,7 @@ func handle(c *client) {
 				}
 
 				for i := 0; i < len(v); i++ {
-					write(c.conn , v[i])
+					write(c.conn, v[i])
 				}
 
 			case "dlist":
@@ -220,8 +217,8 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				delete(c.dbpointer.getDataList() , k)
-				write(c.conn , "OK")
+				delete(c.dbpointer.getDataList(), k)
+				write(c.conn, "OK")
 
 			case "push":
 				if len(fs) < 2 {
@@ -240,7 +237,7 @@ func handle(c *client) {
 
 				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].push(v)
 
-				write(c.conn , "OK")
+				write(c.conn, "OK")
 
 			case "pop":
 				if len(fs) < 2 {
@@ -251,7 +248,7 @@ func handle(c *client) {
 
 				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].pop()
 
-				write(c.conn , "OK")
+				write(c.conn, "OK")
 
 			case "set":
 				if len(fs) < 2 {
