@@ -72,18 +72,23 @@ func (l *LinkedList) pop() (*Element, error) {
 // 8 -> 1 -> 2 ->3
 func (l *LinkedList) shift(v string) {
 
-	// counter := l.length
-	// pointer := l.start
-	// for counter != 0 {
-	// 	counter--
-	// }
+	start := l.start
+	new_e := &Element{value: v , next: start}
+	l.start = new_e
+	l.length++
 }
 
 // 8 -> 1 -> 2 ->3
 // unshift(8)
 //  1 -> 2 -> 3
-func (l *LinkedList) unshift() (*Element, error) {
-
+func (l *LinkedList) unshift() (*Element, *Element , error) {
+	if l.length == 0 {
+		return nil,nil, errors.New("LinkedList is empty")
+	}
+	old_start := l.start
+	l.start = old_start.next
+	l.length--
+	return old_start , l.start ,nil
 }
 
 // removes an element
@@ -107,20 +112,25 @@ func main() {
 	v := NewList()
 	v.push("x")
 	v.push("y")
-	x, err := v.pop()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(x.value)
+	v.push("z")
+	// x, err := v.pop()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// fmt.Println(x.value)
+		fmt.Println(v)
+
+	s,b,_ := v.unshift()
+	fmt.Println(s.value,b.value)
 	fmt.Println(v)
-	z, _ := v.pop()
-	fmt.Println(z.value)
-	fmt.Println(v)
-	v.push("m")
-	fmt.Println(v)
-	m, _ := v.pop()
-	fmt.Println(m.value)
-	fmt.Println(v)
+	// z, _ := v.pop()
+	// fmt.Println(z.value)
+	// fmt.Println(v)
+	// v.push("m")
+	// fmt.Println(v)
+	// m, _ := v.pop()
+	// fmt.Println(m.value)
+	// fmt.Println(v)
 
 }
