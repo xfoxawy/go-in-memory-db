@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	// "fmt"
 )
 
 type Element struct {
@@ -17,8 +17,8 @@ type LinkedList struct {
 	length int
 }
 
-func NewList() LinkedList {
-	return LinkedList{length: 0}
+func NewList() *LinkedList {
+	return &LinkedList{length: 0}
 }
 
 func (l *LinkedList) push(v string) {
@@ -108,29 +108,29 @@ func (l *LinkedList) unlink(step int) {
 }
 
 // test main function
-func main() {
-	v := NewList()
-	v.push("x")
-	v.push("y")
-	v.push("z")
-	// x, err := v.pop()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println(x.value)
-		fmt.Println(v)
+// func main() {
+// 	v := NewList()
+// 	v.push("x")
+// 	v.push("y")
+// 	v.push("z")
+// 	// x, err := v.pop()
+// 	// if err != nil {
+// 	// 	fmt.Println(err)
+// 	// 	return
+// 	// }
+// 	// fmt.Println(x.value)
+// 		fmt.Println(v)
 
-	s,b,_ := v.unshift()
-	fmt.Println(s.value,b.value)
-	fmt.Println(v)
-	// z, _ := v.pop()
-	// fmt.Println(z.value)
-	// fmt.Println(v)
-	// v.push("m")
-	// fmt.Println(v)
-	// m, _ := v.pop()
-	// fmt.Println(m.value)
-	// fmt.Println(v)
+// 	s,b,_ := v.unshift()
+// 	fmt.Println(s.value,b.value)
+// 	fmt.Println(v)
+// 	// z, _ := v.pop()
+// 	// fmt.Println(z.value)
+// 	// fmt.Println(v)
+// 	// v.push("m")
+// 	// fmt.Println(v)
+// 	// m, _ := v.pop()
+// 	// fmt.Println(m.value)
+// 	// fmt.Println(v)
 
-}
+// }

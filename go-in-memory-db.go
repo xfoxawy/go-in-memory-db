@@ -22,7 +22,7 @@ type Database interface {
 	isset(k string) bool
 	dump() string
 	name() string
-	getDataList() map[string]List
+	getDataList() map[string]*LinkedList
 	clear()
 }
 
@@ -30,7 +30,7 @@ type database struct {
 	namespace string
 	public    bool
 	data      map[string]string
-	dataList  map[string]List
+	dataList  map[string]*LinkedList
 }
 
 type client struct {
@@ -97,7 +97,7 @@ func (db *database) name() string {
 	return db.namespace
 }
 
-func (db *database) getDataList() map[string]List {
+func (db *database) getDataList() map[string]*LinkedList {
 	return db.dataList
 }
 
@@ -106,7 +106,7 @@ func createMasterDB() *database {
 		"master",
 		true,
 		make(map[string]string),
-		make(map[string]List),
+		make(map[string]*LinkedList),
 	}
 	return &db
 }
@@ -191,8 +191,7 @@ func handle(c *client) {
 				}
 				k := fs[1]
 
-				v := strings.Fields(strings.Join(fs[2:], " "))
-				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].setList(v)
+				c.dbpointer.getDataList()[k] = NewList()
 				write(c.conn, "OK")
 
 			case "glist":
@@ -201,14 +200,17 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				v := c.dbpointer.getDataList()[k].getList()
-				if len(v) < 1 {
-					write(c.conn, "NIL")
-					break
+				v := c.dbpointer.getDataList()[k]
+				
+				if v==nil || v.length==0 {
+					write(c.conn , "empty or not exit")
+					continue
 				}
-
-				for i := 0; i < len(v); i++ {
-					write(c.conn, v[i])
+				write(c.conn , v.start.value)
+				current := v.start
+				for current.next != nil {
+					current = current.next
+					write(c.conn , current.value)
 				}
 
 			case "dlist":
@@ -235,7 +237,7 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].push(v)
+				c.dbpointer.getDataList()[k].push(v)
 
 				write(c.conn, "OK")
 
@@ -246,9 +248,11 @@ func handle(c *client) {
 				}
 				k := fs[1]
 
-				c.dbpointer.getDataList()[k] = c.dbpointer.getDataList()[k].pop()
-
-				write(c.conn, "OK")
+				p,err := c.dbpointer.getDataList()[k].pop()
+				if err != nil {
+					write(c.conn , "list is empty")
+				}
+				write(c.conn, p.value)
 
 			case "set":
 				if len(fs) < 2 {
@@ -327,7 +331,7 @@ func handle(c *client) {
 						true,
 						make(map[string]string),
 
-						make(map[string]List),
+						make(map[string]*LinkedList),
 					}
 					c.dbpointer = Databases[key]
 				}
