@@ -107,9 +107,11 @@ func (l *LinkedList) remove(value string) (error) {
 	}
 	if l.start.value == value {
 		l.unshift()
+		return nil
 	}
 	if l.end.value == value {
 		l.pop()
+		return nil
 	}
 	current := l.start
 	last := l.start
