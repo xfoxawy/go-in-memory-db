@@ -254,6 +254,36 @@ func handle(c *client) {
 				}
 				write(c.conn, p.value)
 
+			case "shift":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+
+				c.dbpointer.getDataList()[k].shift(v)
+				write(c.conn, "OK")
+
+			case "unshift":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				unshifted,err := c.dbpointer.getDataList()[k].unshift()
+				if err != nil {
+					write(c.conn , "list is empty")
+				}
+				write(c.conn, unshifted.value)
+
 			case "set":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")

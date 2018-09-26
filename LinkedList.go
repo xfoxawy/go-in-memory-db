@@ -60,6 +60,7 @@ func (l *LinkedList) pop() (*Element, error) {
 
 		l.end = pointer
 		popped := pointer.next
+		l.end.next = nil
 		l.length--
 
 		return popped, nil
@@ -71,24 +72,29 @@ func (l *LinkedList) pop() (*Element, error) {
 // shift(8)
 // 8 -> 1 -> 2 ->3
 func (l *LinkedList) shift(v string) {
+	if l.length == 0 {
+		e := Element{value: v}
+		l.append(&e)
+	} else {
+		start := l.start
+		new_e := &Element{value: v , next: start}
+		l.start = new_e
+	}
 
-	start := l.start
-	new_e := &Element{value: v , next: start}
-	l.start = new_e
 	l.length++
 }
 
 // 8 -> 1 -> 2 ->3
 // unshift(8)
 //  1 -> 2 -> 3
-func (l *LinkedList) unshift() (*Element, *Element , error) {
+func (l *LinkedList) unshift() (*Element , error) {
 	if l.length == 0 {
-		return nil,nil, errors.New("LinkedList is empty")
+		return nil, errors.New("LinkedList is empty")
 	}
 	old_start := l.start
 	l.start = old_start.next
 	l.length--
-	return old_start , l.start ,nil
+	return old_start,nil
 }
 
 // removes an element
