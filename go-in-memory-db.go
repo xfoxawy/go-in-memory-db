@@ -219,8 +219,14 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				delete(c.dbpointer.getDataList(), k)
-				write(c.conn, "OK")
+				if _, ok := c.dbpointer.getDataList()[k]; ok {
+					delete(c.dbpointer.getDataList(), k)
+					write(c.conn , "This List Has Deleted")
+					write(c.conn , k)
+					continue
+				}
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
 
 			case "push":
 				if len(fs) < 2 {
@@ -236,10 +242,14 @@ func handle(c *client) {
 				} else {
 					v = strings.Join(fs[2:], "")
 				}
+				if list, ok := c.dbpointer.getDataList()[k]; ok {
+					list.push(v)
+					write(c.conn , "OK")
+					continue
+				}
 
-				c.dbpointer.getDataList()[k].push(v)
-
-				write(c.conn, "OK")
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
 
 			case "pop":
 				if len(fs) < 2 {
@@ -248,11 +258,16 @@ func handle(c *client) {
 				}
 				k := fs[1]
 
-				p,err := c.dbpointer.getDataList()[k].pop()
-				if err != nil {
-					write(c.conn , "list is empty")
+				if list, ok := c.dbpointer.getDataList()[k]; ok {
+					p,err := list.pop()
+					if err != nil {
+						write(c.conn , "list is empty")
+					}
+					write(c.conn, p.value)
+					continue
 				}
-				write(c.conn, p.value)
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
 
 			case "shift":
 				if len(fs) < 2 {
@@ -268,8 +283,13 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				c.dbpointer.getDataList()[k].shift(v)
-				write(c.conn, "OK")
+				if list, ok := c.dbpointer.getDataList()[k]; ok {
+					list.shift(v)
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
 
 			case "unshift":
 				if len(fs) < 2 {
@@ -278,11 +298,16 @@ func handle(c *client) {
 				}
 				k := fs[1]
 
-				unshifted,err := c.dbpointer.getDataList()[k].unshift()
-				if err != nil {
-					write(c.conn , "list is empty")
+				if list, ok := c.dbpointer.getDataList()[k]; ok {
+					unshifted,err := list.unshift()
+					if err != nil {
+						write(c.conn , "list is empty")
+					}
+					write(c.conn, unshifted.value)
+					continue
 				}
-				write(c.conn, unshifted.value)
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
 
 			case "set":
 				if len(fs) < 2 {
