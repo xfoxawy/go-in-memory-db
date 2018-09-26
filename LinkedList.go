@@ -101,8 +101,29 @@ func (l *LinkedList) unshift() (*Element , error) {
 // 1->2->3
 // remove(2)
 // 1->3
-func (l *LinkedList) remove(value string) {
-
+func (l *LinkedList) remove(value string) (error) {
+	if l.length == 0 {
+		return errors.New("LinkedList is empty")
+	}
+	if l.start.value == value {
+		l.unshift()
+	}
+	if l.end.value == value {
+		l.pop()
+	}
+	current := l.start
+	last := l.start
+	for current.next != nil {
+		if current.value == value {
+			last.next = current.next
+			current.next = nil
+			break
+		}
+		last = current
+		current = current.next
+	}
+	l.length--
+	return nil
 }
 
 // remove element by step

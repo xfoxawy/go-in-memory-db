@@ -309,6 +309,31 @@ func handle(c *client) {
 				write(c.conn, "This List Not Exist")
 				write(c.conn, k)
 
+			case "remove":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+
+				if list, ok := c.dbpointer.getDataList()[k]; ok {
+					err := list.remove(v)
+					if err != nil {
+						write(c.conn , "list is empty")
+					}
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "This List Not Exist")
+				write(c.conn, k)
+
 			case "set":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
