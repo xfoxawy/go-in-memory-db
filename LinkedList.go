@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	// "fmt"
 )
 
 type Element struct {
@@ -77,7 +76,7 @@ func (l *LinkedList) shift(v string) {
 		l.append(&e)
 	} else {
 		start := l.start
-		new_e := &Element{value: v , next: start}
+		new_e := &Element{value: v, next: start}
 		l.start = new_e
 	}
 
@@ -87,21 +86,21 @@ func (l *LinkedList) shift(v string) {
 // 8 -> 1 -> 2 ->3
 // unshift(8)
 //  1 -> 2 -> 3
-func (l *LinkedList) unshift() (*Element , error) {
+func (l *LinkedList) unshift() (*Element, error) {
 	if l.length == 0 {
 		return nil, errors.New("LinkedList is empty")
 	}
 	old_start := l.start
 	l.start = old_start.next
 	l.length--
-	return old_start,nil
+	return old_start, nil
 }
 
 // removes an element
 // 1->2->3
 // remove(2)
 // 1->3
-func (l *LinkedList) remove(value string) (error) {
+func (l *LinkedList) remove(value string) error {
 	if l.length == 0 {
 		return errors.New("LinkedList is empty")
 	}
@@ -130,36 +129,17 @@ func (l *LinkedList) remove(value string) (error) {
 
 // remove element by step
 // 4 -> 5 ->6
-// remove step 3
+// remove(2)
 // 4 -> 5
 func (l *LinkedList) unlink(step int) {
 
 }
 
-// test main function
-// func main() {
-// 	v := NewList()
-// 	v.push("x")
-// 	v.push("y")
-// 	v.push("z")
-// 	// x, err := v.pop()
-// 	// if err != nil {
-// 	// 	fmt.Println(err)
-// 	// 	return
-// 	// }
-// 	// fmt.Println(x.value)
-// 		fmt.Println(v)
+// 4->5->6
+// seek(1)
+// 5
+// seek(0)
+// 4
+func (l *LinkedList) seek(step int) {
 
-// 	s,b,_ := v.unshift()
-// 	fmt.Println(s.value,b.value)
-// 	fmt.Println(v)
-// 	// z, _ := v.pop()
-// 	// fmt.Println(z.value)
-// 	// fmt.Println(v)
-// 	// v.push("m")
-// 	// fmt.Println(v)
-// 	// m, _ := v.pop()
-// 	// fmt.Println(m.value)
-// 	// fmt.Println(v)
-
-// }
+}

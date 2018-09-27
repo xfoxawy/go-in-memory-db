@@ -22,7 +22,9 @@ type Database interface {
 	isset(k string) bool
 	dump() string
 	name() string
-	getDataList() map[string]*LinkedList
+	getList(k string) (*LinkedList, error)
+	createList(k string) *LinkedList
+	delList(k string)
 	clear()
 }
 
@@ -42,15 +44,6 @@ type client struct {
 func (db *database) set(k string, v string) bool {
 	db.data[k] = v
 	return true
-}
-
-func indexOf(list []string, value string) int {
-	for k, v := range list {
-		if v == value {
-			return k
-		}
-	}
-	return -1
 }
 
 func (db *database) get(k string) (string, error) {
@@ -97,8 +90,25 @@ func (db *database) name() string {
 	return db.namespace
 }
 
-func (db *database) getDataList() map[string]*LinkedList {
-	return db.dataList
+func (db *database) getList(k string) (*LinkedList, error) {
+	if _, ok := db.dataList[k]; ok {
+		return db.dataList[k], nil
+	}
+
+	return nil, errors.New("not found")
+
+}
+
+func (db *database) createList(k string) *LinkedList {
+	if _, ok := db.dataList[k]; ok {
+		errors.New("List Exists")
+	}
+	db.dataList[k] = NewList()
+	return db.dataList[k]
+}
+
+func (db *database) delList(k string) {
+	delete(db.dataList, k)
 }
 
 func createMasterDB() *database {
@@ -112,11 +122,11 @@ func createMasterDB() *database {
 }
 
 // MasterDb placeholder
+// All Databases
 var (
 	MasterDb = createMasterDB()
 )
 
-// All Databases
 var (
 	Databases = map[string]*database{"master": createMasterDB()}
 )
@@ -184,92 +194,104 @@ func handle(c *client) {
 			case "help":
 				write(c.conn, help())
 
-			case "slist":
+			case "lset":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
+				v := fs[2:]
 
-				c.dbpointer.getDataList()[k] = NewList()
+				list := c.dbpointer.createList(k)
+
+				for i := range v {
+					list.push(v[i])
+				}
+
 				write(c.conn, "OK")
 
-			case "glist":
+			case "lget":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				v := c.dbpointer.getDataList()[k]
-				
-				if v==nil || v.length==0 {
-					write(c.conn , "empty or not exit")
+				v, err := c.dbpointer.getList(k)
+
+				if err != nil {
+					write(c.conn, "empty or not exit")
 					continue
 				}
-				write(c.conn , v.start.value)
+				write(c.conn, v.start.value)
 				current := v.start
 				for current.next != nil {
 					current = current.next
-					write(c.conn , current.value)
+					write(c.conn, current.value)
 				}
 
-			case "dlist":
+			case "ldel":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				if _, ok := c.dbpointer.getDataList()[k]; ok {
-					delete(c.dbpointer.getDataList(), k)
-					write(c.conn , "This List Has Deleted")
-					write(c.conn , k)
+				if _, err := c.dbpointer.getList(k); err == nil {
+					c.dbpointer.delList(k)
+					write(c.conn, "OK")
+					write(c.conn, k)
 					continue
 				}
-				write(c.conn, "This List Not Exist")
+				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
-			case "push":
+			case "lpush":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+
+				if len(fs) < 3 {
+					continue
+				}
+
+				k := fs[1]
+
+				list, err := c.dbpointer.getList(k)
+
+				if err != nil {
+					write(c.conn, "List Does not Exist")
+					continue
+				}
+
+				values := fs[2:]
+
+				for i := range values {
+					list.push(values[i])
+				}
+
+				write(c.conn, "OK")
+				continue
+
+			case "lpop":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
 
-				var v string
-
-				if len(fs) == 2 {
-					v = "NIL"
-				} else {
-					v = strings.Join(fs[2:], "")
-				}
-				if list, ok := c.dbpointer.getDataList()[k]; ok {
-					list.push(v)
-					write(c.conn , "OK")
-					continue
-				}
-
-				write(c.conn, "This List Not Exist")
-				write(c.conn, k)
-
-			case "pop":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
-
-				if list, ok := c.dbpointer.getDataList()[k]; ok {
-					p,err := list.pop()
+				if list, err := c.dbpointer.getList(k); err == nil {
+					p, err := list.pop()
 					if err != nil {
-						write(c.conn , "list is empty")
+						write(c.conn, "list is empty")
+						continue
 					}
 					write(c.conn, p.value)
 					continue
 				}
-				write(c.conn, "This List Not Exist")
+				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
-			case "shift":
+			case "lshift":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
@@ -283,33 +305,35 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 
-				if list, ok := c.dbpointer.getDataList()[k]; ok {
+				if list, err := c.dbpointer.getList(k); err == nil {
 					list.shift(v)
 					write(c.conn, "OK")
 					continue
 				}
-				write(c.conn, "This List Not Exist")
+				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
-			case "unshift":
+			case "lunshift":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
 
-				if list, ok := c.dbpointer.getDataList()[k]; ok {
-					unshifted,err := list.unshift()
+				if list, err := c.dbpointer.getList(k); err == nil {
+					unshifted, err := list.unshift()
 					if err != nil {
-						write(c.conn , "list is empty")
+						write(c.conn, "list is empty")
+						continue
 					}
 					write(c.conn, unshifted.value)
 					continue
 				}
-				write(c.conn, "This List Not Exist")
+				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
-			case "remove":
+			// test this method by removing non existance key, or keep removing til its empty
+			case "lrm", "lremove":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
@@ -317,21 +341,23 @@ func handle(c *client) {
 				k := fs[1]
 				var v string
 
+				// look at line 266 , you should treat values as elements
+				// example , lpush x 1 2 3 becomes x = 1 -> 2 -> 3 in memory not a single string 123
 				if len(fs) == 2 {
 					v = "NIL"
 				} else {
 					v = strings.Join(fs[2:], "")
 				}
 
-				if list, ok := c.dbpointer.getDataList()[k]; ok {
+				if list, err := c.dbpointer.getList(k); err == nil {
 					err := list.remove(v)
 					if err != nil {
-						write(c.conn , "list is empty")
+						write(c.conn, "list is empty")
 					}
 					write(c.conn, "OK")
 					continue
 				}
-				write(c.conn, "This List Not Exist")
+				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
 			case "set":
