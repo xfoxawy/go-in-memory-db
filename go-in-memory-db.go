@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"strconv"
 )
 
 const port string = "8080"
@@ -350,6 +351,31 @@ func handle(c *client) {
 						err := list.remove(values[i])
 						if err != nil {
 							write(c.conn, "list is empty")
+							break
+						}
+					}
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "List Does not Exist")
+				write(c.conn, k)
+
+			case "lunlink":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				
+				values := fs[2:]
+
+				if list, err := c.dbpointer.getList(k); err == nil {
+
+					for i := range values {
+						intVal,_ := strconv.Atoi(values[i])
+						err := list.unlink(intVal)
+						if err != nil {
+							write(c.conn, "LinkedList is empty OR Step Not Exist")
 							break
 						}
 					}

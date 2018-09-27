@@ -131,8 +131,33 @@ func (l *LinkedList) remove(value string) error {
 // 4 -> 5 ->6
 // remove(2)
 // 4 -> 5
-func (l *LinkedList) unlink(step int) {
-
+func (l *LinkedList) unlink(step int) error {
+	if l.length == 0 || l.length < step {
+		return errors.New("LinkedList is empty OR Step Not Exist")
+	}
+	if step == 1 {
+		l.unshift()
+		return nil
+	}
+	if step == l.length {
+		l.pop()
+		return nil
+	}
+	current := l.start
+	last := l.start
+	i := 1
+	for current.next != nil {
+		if step == i {
+			last.next = current.next
+			current.next = nil
+			break
+		}
+		last = current
+		current = current.next
+		i++
+	}
+	l.length--
+	return nil
 }
 
 // 4->5->6
