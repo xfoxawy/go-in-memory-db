@@ -333,6 +333,8 @@ func handle(c *client) {
 				write(c.conn, k)
 
 			// test this method by removing non existance key, or keep removing til its empty
+			// in case empty it will show list is empty , OK
+			// in non existance key it will return OK only 
 			case "lrm", "lremove":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
