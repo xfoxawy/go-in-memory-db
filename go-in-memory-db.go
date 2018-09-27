@@ -218,7 +218,7 @@ func handle(c *client) {
 				k := fs[1]
 				v, err := c.dbpointer.getList(k)
 
-				if err != nil {
+				if err != nil || v.start == nil {
 					write(c.conn, "empty or not exit")
 					continue
 				}
