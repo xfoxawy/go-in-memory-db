@@ -339,20 +339,17 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				var v string
-
-				// look at line 266 , you should treat values as elements
-				// example , lpush x 1 2 3 becomes x = 1 -> 2 -> 3 in memory not a single string 123
-				if len(fs) == 2 {
-					v = "NIL"
-				} else {
-					v = strings.Join(fs[2:], "")
-				}
+				
+				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
-					err := list.remove(v)
-					if err != nil {
-						write(c.conn, "list is empty")
+
+					for i := range values {
+						err := list.remove(values[i])
+						if err != nil {
+							write(c.conn, "list is empty")
+							break
+						}
 					}
 					write(c.conn, "OK")
 					continue
