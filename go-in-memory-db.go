@@ -385,6 +385,38 @@ func handle(c *client) {
 				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
 
+			case "lseek":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+				if list, err := c.dbpointer.getList(k); err == nil {
+					intVal,err := strconv.Atoi(v)
+					if err != nil {
+						write(c.conn, "LinkedList is empty OR Step Not Exist")
+						continue
+					}
+					value,err := list.seek(intVal)
+					if err != nil {
+						write(c.conn, "LinkedList is empty OR Step Not Exist")
+						continue
+					}
+					write(c.conn, value)
+					continue
+				}
+				write(c.conn, "List Does not Exist")
+				write(c.conn, k)
+
+
 			case "set":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")

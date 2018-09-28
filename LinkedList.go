@@ -165,6 +165,24 @@ func (l *LinkedList) unlink(step int) error {
 // 5
 // seek(0)
 // 4
-func (l *LinkedList) seek(step int) {
-
+func (l *LinkedList) seek(step int) (string , error) {
+	if l.length == 0 || l.length < step {
+		return "", errors.New("LinkedList is empty OR Step Not Exist")
+	}
+	if step == 1 {
+		return l.start.value, nil
+	}
+	if step == l.length {
+		return l.end.value , nil
+	}
+	i := 1
+	current := l.start
+	for current.next != nil {
+		if step == i {
+			return current.value , nil
+		}
+		current = current.next
+		i++
+	}
+	return "", errors.New("LinkedList is empty OR Step Not Exist")
 }
