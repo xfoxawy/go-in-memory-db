@@ -538,6 +538,19 @@ func help() string {
 		"GET key \n" +
 		"DEL key \n" +
 		"ISSET key \n" +
+		"\nLINKED LIST COMMANDS : \n\n"+
+		"LSET key \n" +
+		"LGET key \n" +
+		"LDEL key \n" +
+		"LPUSH key value1 value2 etc \n" +
+		"LPOP key \n" +
+		"LSHIFT key value \n" +
+		"LUNSHIFT key \n" +
+		"LRM key value1 value2 etc \n" +
+		"LREMOVE key value1 value2 etc \n" +
+		"LUNLINK key index1 index2 etc \n" +
+		"LSEEK key index \n" +
+		"\nEND OF LINKED LIST COMMANDS : \n\n"+
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
