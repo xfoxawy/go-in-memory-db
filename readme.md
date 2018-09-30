@@ -59,7 +59,58 @@ GET key
 to check if key isset
 ```
 ISSET key
-```
+
+
+to set linked list
+
+Lset key
+
+
+to get data from linked list
+
+LGET key
+
+
+to delete linked list
+
+LDEL key
+
+
+to push in linked list
+
+LPUSH key value1 value2 etc...
+
+
+to remove last element in linked list 
+
+LPOP key
+
+
+to push in left of linked list 
+
+LSHIFT key value
+
+
+to remove from left of linked list 
+
+LUNSHIFT key
+
+
+to remove value in linked list 
+
+LRM key value1 value2 etc...
+OR
+LREMOVE key value1 value2 etc...
+
+
+to remove values in linked list using (index) int
+
+LUNLINK key index1 index2 etc...
+
+
+to get value using (index) int
+
+LSEEK key index
 
 to dump data to screen
 ```
