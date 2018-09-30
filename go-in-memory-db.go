@@ -10,8 +10,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const port string = "8080"
@@ -26,14 +26,18 @@ type Database interface {
 	getList(k string) (*LinkedList, error)
 	createList(k string) *LinkedList
 	delList(k string)
+	getHashTable(k string) (*HashTable, error)
+	createHashTable(k string) *HashTable
+	delHashTable(k string)
 	clear()
 }
 
 type database struct {
-	namespace string
-	public    bool
-	data      map[string]string
-	dataList  map[string]*LinkedList
+	namespace     string
+	public        bool
+	data          map[string]string
+	dataList      map[string]*LinkedList
+	dataHashTable map[string]*HashTable
 }
 
 type client struct {
@@ -112,12 +116,34 @@ func (db *database) delList(k string) {
 	delete(db.dataList, k)
 }
 
+func (db *database) getHashTable(k string) (*HashTable, error) {
+	if _, ok := db.dataHashTable[k]; ok {
+		return db.dataHashTable[k], nil
+	}
+
+	return nil, errors.New("not found")
+
+}
+
+func (db *database) createHashTable(k string) *HashTable {
+	if _, ok := db.dataHashTable[k]; ok {
+		errors.New("Hash Table Exists")
+	}
+	db.dataHashTable[k] = NewHashTable()
+	return db.dataHashTable[k]
+}
+
+func (db *database) delHashTable(k string) {
+	delete(db.dataHashTable, k)
+}
+
 func createMasterDB() *database {
 	db := database{
 		"master",
 		true,
 		make(map[string]string),
 		make(map[string]*LinkedList),
+		make(map[string]*HashTable),
 	}
 	return &db
 }
@@ -194,6 +220,99 @@ func handle(c *client) {
 
 			case "help":
 				write(c.conn, help())
+
+			case "hset":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v := fs[2:]
+
+				hash := c.dbpointer.createHashTable(k)
+				for i := range v {
+					hash.values = hash.push(v[i])
+				}
+
+				write(c.conn, k)
+
+			case "hget":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v, err := c.dbpointer.getHashTable(k)
+
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+				for i := range v.values {
+					write(c.conn, v.values[i])
+				}
+
+			case "hdel":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if _, err := c.dbpointer.getHashTable(k); err == nil {
+					c.dbpointer.delHashTable(k)
+					write(c.conn, "OK")
+					write(c.conn, k)
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
+
+			case "hpush":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+
+				if len(fs) < 3 {
+					write(c.conn, "Values are required!")
+					continue
+				}
+
+				k := fs[1]
+
+				hash, err := c.dbpointer.getHashTable(k)
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+
+				values := fs[2:]
+				for i := range values {
+					hash.values = hash.push(values[i])
+				}
+
+				write(c.conn, "OK")
+				continue
+
+			case "hrm", "hremove":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				values := fs[2:]
+
+				if hash, err := c.dbpointer.getHashTable(k); err == nil {
+
+					for i := range values {
+						hash.values = hash.remove(values[i])
+					}
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {
@@ -335,14 +454,14 @@ func handle(c *client) {
 
 			// test this method by removing non existance key, or keep removing til its empty
 			// in case empty it will show list is empty , OK
-			// in non existance key it will return OK only 
+			// in non existance key it will return OK only
 			case "lrm", "lremove":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
@@ -366,13 +485,13 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
 
 					for i := range values {
-						intVal,_ := strconv.Atoi(values[i])
+						intVal, _ := strconv.Atoi(values[i])
 						err := list.unlink(intVal)
 						if err != nil {
 							write(c.conn, "LinkedList is empty OR Step Not Exist")
@@ -391,7 +510,7 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				var v string
 
 				if len(fs) == 2 {
@@ -400,12 +519,12 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 				if list, err := c.dbpointer.getList(k); err == nil {
-					intVal,err := strconv.Atoi(v)
+					intVal, err := strconv.Atoi(v)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
 					}
-					value,err := list.seek(intVal)
+					value, err := list.seek(intVal)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
@@ -415,7 +534,6 @@ func handle(c *client) {
 				}
 				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
-
 
 			case "set":
 				if len(fs) < 2 {
@@ -495,6 +613,7 @@ func handle(c *client) {
 						make(map[string]string),
 
 						make(map[string]*LinkedList),
+						make(map[string]*HashTable),
 					}
 					c.dbpointer = Databases[key]
 				}
@@ -538,7 +657,7 @@ func help() string {
 		"GET key \n" +
 		"DEL key \n" +
 		"ISSET key \n" +
-		"\nLINKED LIST COMMANDS : \n\n"+
+		"\nLINKED LIST COMMANDS : \n\n" +
 		"LSET key \n" +
 		"LGET key \n" +
 		"LDEL key \n" +
@@ -550,7 +669,7 @@ func help() string {
 		"LREMOVE key value1 value2 etc \n" +
 		"LUNLINK key index1 index2 etc \n" +
 		"LSEEK key index \n" +
-		"\nEND OF LINKED LIST COMMANDS : \n\n"+
+		"\nEND OF LINKED LIST COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
