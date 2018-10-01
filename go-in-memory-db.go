@@ -716,6 +716,16 @@ func help() string {
 		"LUNLINK key index1 index2 etc \n" +
 		"LSEEK key index \n" +
 		"\nEND OF LINKED LIST COMMANDS : \n\n" +
+		"\nHASH TABLE COMMANDS : \n\n" +
+		"HSET key \n" +
+		"HGET key \n" +
+		"HDEL key \n" +
+		"HPUSH key value1 value2 etc \n" +
+		"HRM key value1 value2 etc \n" +
+		"HREMOVE key value1 value2 etc \n" +
+		"HUNLINK key index \n" +
+		"HSEEK key index1 index2 etc... \n" +
+		"\nEND OF HASH TABLE COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
