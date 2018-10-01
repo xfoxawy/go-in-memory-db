@@ -339,6 +339,27 @@ func handle(c *client) {
 				write(c.conn, "Hash table Does not Exist")
 				write(c.conn, k)
 
+			case "hseek":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				v := fs[2:]
+
+				if hash, err := c.dbpointer.getHashTable(k); err == nil {
+					for i := range v {
+						intVal, _ := strconv.Atoi(v[i])
+						value := hash.seek(intVal)
+
+						write(c.conn, value)
+					}
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
+
 			case "lset":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")

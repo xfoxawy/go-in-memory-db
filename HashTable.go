@@ -50,6 +50,19 @@ func (h *HashTable) unlink(index int) []string {
 	return h.values
 }
 
+/**
+* get element value using index
+* [value1 , value2 , ...]
+* seek 0
+* value1
+ */
+func (h *HashTable) seek(index int) string {
+	if index >= 0 && index < len(h.values) {
+		return h.values[index]
+	}
+	return ""
+}
+
 func getElementIndex(element string, array []string) int {
 	for i := range array {
 		if element == array[i] {
