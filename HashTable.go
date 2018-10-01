@@ -35,6 +35,21 @@ func (h *HashTable) remove(value string) []string {
 	return h.values
 }
 
+/**
+* delete value using index
+* [index1 , index2 , ...]
+* unlink 0
+* [index2 , ...]
+* we can't use it in loop becuase we will have indexing issue
+ */
+func (h *HashTable) unlink(index int) []string {
+	if index >= 0 && index < len(h.values) {
+		result := append(h.values[:index], h.values[index+1:]...)
+		return result
+	}
+	return h.values
+}
+
 func getElementIndex(element string, array []string) int {
 	for i := range array {
 		if element == array[i] {

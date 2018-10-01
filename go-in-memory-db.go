@@ -314,6 +314,31 @@ func handle(c *client) {
 				write(c.conn, "Hash table Does not Exist")
 				write(c.conn, k)
 
+			case "hunlink":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+
+				var v string
+
+				if len(fs) == 2 {
+					v = "NIL"
+				} else {
+					v = strings.Join(fs[2:], "")
+				}
+				if hash, err := c.dbpointer.getHashTable(k); err == nil {
+
+					intVal, _ := strconv.Atoi(v)
+					hash.values = hash.unlink(intVal)
+
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
+
 			case "lset":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
