@@ -10,8 +10,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const port string = "8080"
@@ -26,6 +26,9 @@ type Database interface {
 	getList(k string) (*LinkedList, error)
 	createList(k string) *LinkedList
 	delList(k string)
+	getQueue(k string) (*Queue, error)
+	createQueue(k string) *Queue
+	delQueue(k string)
 	clear()
 }
 
@@ -34,6 +37,7 @@ type database struct {
 	public    bool
 	data      map[string]string
 	dataList  map[string]*LinkedList
+	queue     map[string]*Queue
 }
 
 type client struct {
@@ -112,12 +116,32 @@ func (db *database) delList(k string) {
 	delete(db.dataList, k)
 }
 
+func (db *database) createQueue(k string) *Queue {
+	if _, ok := db.queue[k]; ok {
+		errors.New("queue Exists")
+	}
+	db.queue[k] = NewQueue()
+	return db.queue[k]
+}
+
+func (db *database) getQueue(k string) (*Queue, error) {
+	if _, ok := db.queue[k]; ok {
+		return db.queue[k], nil
+	}
+	return nil, errors.New("not found")
+}
+
+func (db *database) delQueue(k string) {
+	delete(db.queue, k)
+}
+
 func createMasterDB() *database {
 	db := database{
 		"master",
 		true,
 		make(map[string]string),
 		make(map[string]*LinkedList),
+		make(map[string]*Queue),
 	}
 	return &db
 }
@@ -194,6 +218,95 @@ func handle(c *client) {
 
 			case "help":
 				write(c.conn, help())
+
+			case "qset":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v := fs[2:]
+
+				queue := c.dbpointer.createQueue(k)
+
+				for i := range v {
+					queue.enqueue(v[i])
+				}
+
+				write(c.conn, "OK")
+
+			case "qdel":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if _, err := c.dbpointer.getQueue(k); err == nil {
+					c.dbpointer.delQueue(k)
+					write(c.conn, "OK")
+					write(c.conn, k)
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+				write(c.conn, k)
+
+			case "qsize":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if queue, err := c.dbpointer.getQueue(k); err == nil {
+					stringVal := strconv.Itoa(queue.size())
+					write(c.conn, stringVal)
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+				write(c.conn, k)
+
+			case "qfront":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if queue, err := c.dbpointer.getQueue(k); err == nil {
+					write(c.conn, queue.front())
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+				write(c.conn, k)
+
+			case "qdeq":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if queue, err := c.dbpointer.getQueue(k); err == nil {
+					write(c.conn, queue.dequeue())
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+				write(c.conn, k)
+
+			case "qenq":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v := fs[2:]
+
+				if queue, err := c.dbpointer.getQueue(k); err == nil {
+					for i := range v {
+						queue.enqueue(v[i])
+					}
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+				write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {
@@ -335,14 +448,14 @@ func handle(c *client) {
 
 			// test this method by removing non existance key, or keep removing til its empty
 			// in case empty it will show list is empty , OK
-			// in non existance key it will return OK only 
+			// in non existance key it will return OK only
 			case "lrm", "lremove":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
@@ -366,13 +479,13 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
 
 					for i := range values {
-						intVal,_ := strconv.Atoi(values[i])
+						intVal, _ := strconv.Atoi(values[i])
 						err := list.unlink(intVal)
 						if err != nil {
 							write(c.conn, "LinkedList is empty OR Step Not Exist")
@@ -391,7 +504,7 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				var v string
 
 				if len(fs) == 2 {
@@ -400,12 +513,12 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 				if list, err := c.dbpointer.getList(k); err == nil {
-					intVal,err := strconv.Atoi(v)
+					intVal, err := strconv.Atoi(v)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
 					}
-					value,err := list.seek(intVal)
+					value, err := list.seek(intVal)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
@@ -415,7 +528,6 @@ func handle(c *client) {
 				}
 				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
-
 
 			case "set":
 				if len(fs) < 2 {
@@ -495,6 +607,7 @@ func handle(c *client) {
 						make(map[string]string),
 
 						make(map[string]*LinkedList),
+						make(map[string]*Queue),
 					}
 					c.dbpointer = Databases[key]
 				}
@@ -538,7 +651,7 @@ func help() string {
 		"GET key \n" +
 		"DEL key \n" +
 		"ISSET key \n" +
-		"\nLINKED LIST COMMANDS : \n\n"+
+		"\nLINKED LIST COMMANDS : \n\n" +
 		"LSET key \n" +
 		"LGET key \n" +
 		"LDEL key \n" +
@@ -550,7 +663,7 @@ func help() string {
 		"LREMOVE key value1 value2 etc \n" +
 		"LUNLINK key index1 index2 etc \n" +
 		"LSEEK key index \n" +
-		"\nEND OF LINKED LIST COMMANDS : \n\n"+
+		"\nEND OF LINKED LIST COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
