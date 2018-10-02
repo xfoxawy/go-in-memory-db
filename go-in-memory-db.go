@@ -664,6 +664,14 @@ func help() string {
 		"LUNLINK key index1 index2 etc \n" +
 		"LSEEK key index \n" +
 		"\nEND OF LINKED LIST COMMANDS : \n\n" +
+		"\nQUEUE COMMANDS : \n\n" +
+		"QSET key \n" +
+		"QDEL key \n" +
+		"QSIZE key \n" +
+		"QFRONT key \n" +
+		"QDEQ key \n" +
+		"QENQ key value1 value2 etc \n" +
+		"\nEND OF QUEUE COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
