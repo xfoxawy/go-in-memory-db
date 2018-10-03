@@ -10,8 +10,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const port string = "8080"
@@ -26,6 +26,9 @@ type Database interface {
 	getList(k string) (*LinkedList, error)
 	createList(k string) *LinkedList
 	delList(k string)
+	getStack(k string) (*Stack, error)
+	createStack(k string) *Stack
+	delStack(k string)
 	clear()
 }
 
@@ -34,6 +37,7 @@ type database struct {
 	public    bool
 	data      map[string]string
 	dataList  map[string]*LinkedList
+	stack     map[string]*Stack
 }
 
 type client struct {
@@ -112,12 +116,32 @@ func (db *database) delList(k string) {
 	delete(db.dataList, k)
 }
 
+func (db *database) createStack(k string) *Stack {
+	if stack, ok := db.stack[k]; ok {
+		return stack
+	}
+	db.stack[k] = NewStack()
+	return db.stack[k]
+}
+
+func (db *database) getStack(k string) (*Stack, error) {
+	if _, ok := db.stack[k]; ok {
+		return db.stack[k], nil
+	}
+	return nil, errors.New("not found")
+}
+
+func (db *database) delStack(k string) {
+	delete(db.stack, k)
+}
+
 func createMasterDB() *database {
 	db := database{
 		"master",
 		true,
 		make(map[string]string),
 		make(map[string]*LinkedList),
+		make(map[string]*Stack),
 	}
 	return &db
 }
@@ -194,6 +218,95 @@ func handle(c *client) {
 
 			case "help":
 				write(c.conn, help())
+
+			case "sset":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v := fs[2:]
+
+				stack := c.dbpointer.createStack(k)
+
+				for i := range v {
+					stack.push(v[i])
+				}
+
+				write(c.conn, "OK")
+
+			case "sdel":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if _, err := c.dbpointer.getStack(k); err == nil {
+					c.dbpointer.delStack(k)
+					write(c.conn, "OK")
+					write(c.conn, k)
+					continue
+				}
+				write(c.conn, "Stack Does not Exist")
+				write(c.conn, k)
+
+			case "ssize":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if stack, err := c.dbpointer.getStack(k); err == nil {
+					stringVal := strconv.Itoa(stack.size())
+					write(c.conn, stringVal)
+					continue
+				}
+				write(c.conn, "Stack Does not Exist")
+				write(c.conn, k)
+
+			case "stop":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if stack, err := c.dbpointer.getStack(k); err == nil {
+					write(c.conn, stack.top())
+					continue
+				}
+				write(c.conn, "Stack Does not Exist")
+				write(c.conn, k)
+
+			case "spop":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if stack, err := c.dbpointer.getStack(k); err == nil {
+					write(c.conn, stack.pop())
+					continue
+				}
+				write(c.conn, "Stack Does not Exist")
+				write(c.conn, k)
+
+			case "spush":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v := fs[2:]
+
+				if stack, err := c.dbpointer.getStack(k); err == nil {
+					for i := range v {
+						stack.push(v[i])
+					}
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "Stack Does not Exist")
+				write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {
@@ -335,14 +448,14 @@ func handle(c *client) {
 
 			// test this method by removing non existance key, or keep removing til its empty
 			// in case empty it will show list is empty , OK
-			// in non existance key it will return OK only 
+			// in non existance key it will return OK only
 			case "lrm", "lremove":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
@@ -366,13 +479,13 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				values := fs[2:]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
 
 					for i := range values {
-						intVal,_ := strconv.Atoi(values[i])
+						intVal, _ := strconv.Atoi(values[i])
 						err := list.unlink(intVal)
 						if err != nil {
 							write(c.conn, "LinkedList is empty OR Step Not Exist")
@@ -391,7 +504,7 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				
+
 				var v string
 
 				if len(fs) == 2 {
@@ -400,12 +513,12 @@ func handle(c *client) {
 					v = strings.Join(fs[2:], "")
 				}
 				if list, err := c.dbpointer.getList(k); err == nil {
-					intVal,err := strconv.Atoi(v)
+					intVal, err := strconv.Atoi(v)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
 					}
-					value,err := list.seek(intVal)
+					value, err := list.seek(intVal)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
@@ -415,7 +528,6 @@ func handle(c *client) {
 				}
 				write(c.conn, "List Does not Exist")
 				write(c.conn, k)
-
 
 			case "set":
 				if len(fs) < 2 {
@@ -495,6 +607,7 @@ func handle(c *client) {
 						make(map[string]string),
 
 						make(map[string]*LinkedList),
+						make(map[string]*Stack),
 					}
 					c.dbpointer = Databases[key]
 				}
@@ -538,7 +651,7 @@ func help() string {
 		"GET key \n" +
 		"DEL key \n" +
 		"ISSET key \n" +
-		"\nLINKED LIST COMMANDS : \n\n"+
+		"\nLINKED LIST COMMANDS : \n\n" +
 		"LSET key \n" +
 		"LGET key \n" +
 		"LDEL key \n" +
@@ -550,7 +663,15 @@ func help() string {
 		"LREMOVE key value1 value2 etc \n" +
 		"LUNLINK key index1 index2 etc \n" +
 		"LSEEK key index \n" +
-		"\nEND OF LINKED LIST COMMANDS : \n\n"+
+		"\nEND OF LINKED LIST COMMANDS : \n\n" +
+		"\nSTACK COMMANDS : \n\n" +
+		"SSET key value1 value2 ... \n" +
+		"SDEL key \n" +
+		"SSIZE key \n" +
+		"STOP key \n" +
+		"SPOP key \n" +
+		"SPUSH key value1 value2 etc \n" +
+		"\nEND OF STACK COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
