@@ -117,8 +117,8 @@ func (db *database) delList(k string) {
 }
 
 func (db *database) createQueue(k string) *Queue {
-	if _, ok := db.queue[k]; ok {
-		errors.New("queue Exists")
+	if queue, ok := db.queue[k]; ok {
+		return queue
 	}
 	db.queue[k] = NewQueue()
 	return db.queue[k]
