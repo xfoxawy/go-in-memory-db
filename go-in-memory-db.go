@@ -235,6 +235,23 @@ func handle(c *client) {
 
 				write(c.conn, "OK")
 
+			case "qget":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if q, err := c.dbpointer.getQueue(k); err == nil {
+					write(c.conn, q.queue.start.value)
+					current := q.queue.start
+					for current.next != nil {
+						current = current.next
+						write(c.conn, current.value)
+					}
+					continue
+				}
+				write(c.conn, "Queue Does not Exist")
+
 			case "qdel":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
@@ -244,11 +261,9 @@ func handle(c *client) {
 				if _, err := c.dbpointer.getQueue(k); err == nil {
 					c.dbpointer.delQueue(k)
 					write(c.conn, "OK")
-					write(c.conn, k)
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
-				write(c.conn, k)
 
 			case "qsize":
 				if len(fs) < 2 {
@@ -262,7 +277,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
-				write(c.conn, k)
 
 			case "qfront":
 				if len(fs) < 2 {
@@ -275,7 +289,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
-				write(c.conn, k)
 
 			case "qdeq":
 				if len(fs) < 2 {
@@ -288,7 +301,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
-				write(c.conn, k)
 
 			case "qenq":
 				if len(fs) < 2 {
@@ -306,7 +318,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
-				write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {
@@ -352,11 +363,9 @@ func handle(c *client) {
 				if _, err := c.dbpointer.getList(k); err == nil {
 					c.dbpointer.delList(k)
 					write(c.conn, "OK")
-					write(c.conn, k)
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "lpush":
 				if len(fs) < 2 {
@@ -403,7 +412,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "lshift":
 				if len(fs) < 2 {
@@ -425,7 +433,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "lunshift":
 				if len(fs) < 2 {
@@ -444,7 +451,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			// test this method by removing non existance key, or keep removing til its empty
 			// in case empty it will show list is empty , OK
@@ -471,7 +477,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "lunlink":
 				if len(fs) < 2 {
@@ -496,7 +501,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "lseek":
 				if len(fs) < 2 {
@@ -527,7 +531,6 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
 
 			case "set":
 				if len(fs) < 2 {
