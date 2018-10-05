@@ -235,6 +235,28 @@ func handle(c *client) {
 
 				write(c.conn, "OK")
 
+			case "sget":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if stack, err := c.dbpointer.getStack(k); err == nil {
+					if stack.start == nil {
+						write(c.conn, "empty or not exit")
+						continue
+					}
+					write(c.conn, stack.stack.value)
+					current := stack.stack.start
+					for current.next != nil {
+						current = current.next
+						write(c.conn, current.value)
+						continue
+					}
+				}
+				write(c.conn, "Stack Does not Exist")
+				continue
+
 			case "sdel":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
@@ -244,11 +266,10 @@ func handle(c *client) {
 				if _, err := c.dbpointer.getStack(k); err == nil {
 					c.dbpointer.delStack(k)
 					write(c.conn, "OK")
-					write(c.conn, k)
 					continue
 				}
 				write(c.conn, "Stack Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "ssize":
 				if len(fs) < 2 {
@@ -262,7 +283,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Stack Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "stop":
 				if len(fs) < 2 {
@@ -275,7 +296,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Stack Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "spop":
 				if len(fs) < 2 {
@@ -288,7 +309,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Stack Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "spush":
 				if len(fs) < 2 {
@@ -306,7 +327,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Stack Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lset":
 				if len(fs) < 2 {
@@ -323,6 +344,7 @@ func handle(c *client) {
 				}
 
 				write(c.conn, "OK")
+				continue
 
 			case "lget":
 				if len(fs) < 2 {
@@ -342,6 +364,7 @@ func handle(c *client) {
 					current = current.next
 					write(c.conn, current.value)
 				}
+				continue
 
 			case "ldel":
 				if len(fs) < 2 {
@@ -352,11 +375,10 @@ func handle(c *client) {
 				if _, err := c.dbpointer.getList(k); err == nil {
 					c.dbpointer.delList(k)
 					write(c.conn, "OK")
-					write(c.conn, k)
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lpush":
 				if len(fs) < 2 {
@@ -403,7 +425,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lshift":
 				if len(fs) < 2 {
@@ -425,7 +447,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lunshift":
 				if len(fs) < 2 {
@@ -444,7 +466,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			// test this method by removing non existance key, or keep removing til its empty
 			// in case empty it will show list is empty , OK
@@ -471,7 +493,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lunlink":
 				if len(fs) < 2 {
@@ -496,7 +518,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "lseek":
 				if len(fs) < 2 {
@@ -527,7 +549,7 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "List Does not Exist")
-				write(c.conn, k)
+				continue
 
 			case "set":
 				if len(fs) < 2 {
@@ -559,6 +581,7 @@ func handle(c *client) {
 					break
 				}
 				write(c.conn, v)
+				continue
 
 			case "del":
 				if len(fs) < 2 {
@@ -568,6 +591,7 @@ func handle(c *client) {
 				k := fs[1]
 				c.dbpointer.del(k)
 				write(c.conn, "OK")
+				continue
 
 			case "isset":
 				if len(fs) < 2 {
@@ -584,13 +608,16 @@ func handle(c *client) {
 			case "dump":
 				content := c.dbpointer.dump()
 				write(c.conn, content)
+				continue
 
 			case "clear":
 				c.dbpointer.clear()
 				write(c.conn, "OK")
+				continue
 
 			case "which":
 				write(c.conn, c.dbpointer.name())
+				continue
 
 			case "use":
 				if len(fs) < 2 {
@@ -611,6 +638,7 @@ func handle(c *client) {
 					}
 					c.dbpointer = Databases[key]
 				}
+				continue
 
 			case "show", "ls":
 				var content bytes.Buffer
@@ -623,6 +651,7 @@ func handle(c *client) {
 					content.WriteString(name)
 				}
 				write(c.conn, content.String())
+				continue
 
 			case "bye":
 				c.conn.Close()
