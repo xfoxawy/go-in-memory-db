@@ -227,16 +227,30 @@ func handle(c *client) {
 					continue
 				}
 				k := fs[1]
-				v := fs[2:]
-
-				hash := c.dbpointer.createHashTable(k)
-				for i := range v {
-					hash.values = hash.push(v[i])
-				}
-
+				c.dbpointer.createHashTable(k)
 				write(c.conn, k)
 
 			case "hget":
+				if len(fs) < 3 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				mapKey := fs[2]
+				v, err := c.dbpointer.getHashTable(k)
+
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+				if value, ok := v.values[mapKey]; ok {
+					write(c.conn, value)
+					continue
+				}
+				write(c.conn, "This Key Does not Exist")
+				continue
+
+			case "hgetall":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
@@ -248,8 +262,9 @@ func handle(c *client) {
 					write(c.conn, "Hash table Does not Exist")
 					continue
 				}
-				for i := range v.values {
-					write(c.conn, v.values[i])
+
+				for k, v := range v.values {
+					write(c.conn, k+" "+v)
 				}
 
 			case "hdel":
@@ -268,17 +283,13 @@ func handle(c *client) {
 				write(c.conn, k)
 
 			case "hpush":
-				if len(fs) < 2 {
+				if len(fs) < 4 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 
-				if len(fs) < 3 {
-					write(c.conn, "Values are required!")
-					continue
-				}
-
 				k := fs[1]
+				mapKey := fs[2]
 
 				hash, err := c.dbpointer.getHashTable(k)
 				if err != nil {
@@ -286,79 +297,73 @@ func handle(c *client) {
 					continue
 				}
 
-				values := fs[2:]
-				for i := range values {
-					hash.values = hash.push(values[i])
-				}
-
+				value := fs[3]
+				hash.values = hash.push(mapKey, value)
 				write(c.conn, "OK")
 				continue
 
 			case "hrm", "hremove":
-				if len(fs) < 2 {
+				if len(fs) < 3 {
 					write(c.conn, "UNEXPECTED KEY")
 					continue
 				}
 				k := fs[1]
-
-				values := fs[2:]
+				mapKey := fs[2]
 
 				if hash, err := c.dbpointer.getHashTable(k); err == nil {
 
-					for i := range values {
-						hash.values = hash.remove(values[i])
-					}
+					hash.values = hash.remove(mapKey)
 					write(c.conn, "OK")
 					continue
 				}
 				write(c.conn, "Hash table Does not Exist")
 				write(c.conn, k)
 
-			case "hunlink":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
+			// case "hunlink":
+			// 	if len(fs) < 2 {
+			// 		write(c.conn, "UNEXPECTED KEY")
+			// 		continue
+			// 	}
+			// 	k := fs[1]
 
-				var v string
+			// 	var v string
 
-				if len(fs) == 2 {
-					v = "NIL"
-				} else {
-					v = strings.Join(fs[2:], "")
-				}
-				if hash, err := c.dbpointer.getHashTable(k); err == nil {
+			// 	if len(fs) == 2 {
+			// 		v = "NIL"
+			// 	} else {
+			// 		v = strings.Join(fs[2:], "")
+			// 	}
+			// 	if hash, err := c.dbpointer.getHashTable(k); err == nil {
 
-					intVal, _ := strconv.Atoi(v)
-					hash.values = hash.unlink(intVal)
+			// 		intVal, _ := strconv.Atoi(v)
+			// 		hash.values = hash.unlink(intVal)
 
-					write(c.conn, "OK")
-					continue
-				}
-				write(c.conn, "Hash table Does not Exist")
-				write(c.conn, k)
+			// 		write(c.conn, "OK")
+			// 		continue
+			// 	}
+			// 	write(c.conn, "Hash table Does not Exist")
+			// 	write(c.conn, k)
 
-			case "hseek":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
+			// case "hseek":
+			// 	if len(fs) < 2 {
+			// 		write(c.conn, "UNEXPECTED KEY")
+			// 		continue
+			// 	}
+			// 	k := fs[1]
 
-				v := fs[2:]
+			// 	v := fs[2:]
 
-				if hash, err := c.dbpointer.getHashTable(k); err == nil {
-					for i := range v {
-						intVal, _ := strconv.Atoi(v[i])
-						value := hash.seek(intVal)
+			// 	if hash, err := c.dbpointer.getHashTable(k); err == nil {
+			// 		for i := range v {
+			// 			intVal, _ := strconv.Atoi(v[i])
+			// 			value := hash.seek(intVal)
 
-						write(c.conn, value)
-					}
-					continue
-				}
-				write(c.conn, "Hash table Does not Exist")
-				write(c.conn, k)
+			// 			write(c.conn, value)
+			// 		}
+			// 		continue
+			// 	}
+			// 	write(c.conn, "Hash table Does not Exist")
+			// 	write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {

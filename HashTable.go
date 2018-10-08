@@ -1,22 +1,24 @@
 package main
 
 type HashTable struct {
-	values []string
+	values map[string]string
 }
 
 func NewHashTable() *HashTable {
-	var values []string
-	return &HashTable{values: values}
+	return &HashTable{values: make(map[string]string)}
 }
 
 /**
-* push value in slice
-* [value1 , value2]
+* push value in map
+* [index1:value1 ,index2: value2]
 * push value3
-* [value1 , value2 , value3]
+* [index1:value1 ,index2: value2, index3: value3]
  */
-func (h *HashTable) push(v string) []string {
-	result := append(h.values, v)
+func (h *HashTable) push(k string, v string) map[string]string {
+	if h.checkLen(k) == true {
+		h.values[k] = v
+	}
+	result := h.values
 	return result
 }
 
@@ -26,11 +28,9 @@ func (h *HashTable) push(v string) []string {
 * delete value1
 * [value2 , ...]
  */
-func (h *HashTable) remove(value string) []string {
-	i := getElementIndex(value, h.values)
-	if i != -1 {
-		result := append(h.values[:i], h.values[i+1:]...)
-		return result
+func (h *HashTable) remove(key string) map[string]string {
+	if _, ok := h.values[key]; ok {
+		delete(h.values, key)
 	}
 	return h.values
 }
@@ -42,33 +42,37 @@ func (h *HashTable) remove(value string) []string {
 * [index2 , ...]
 * we can't use it in loop becuase we will have indexing issue
  */
-func (h *HashTable) unlink(index int) []string {
-	if index >= 0 && index < len(h.values) {
-		result := append(h.values[:index], h.values[index+1:]...)
-		return result
-	}
-	return h.values
-}
+// func (h *HashTable) unlink(index int) []string {
+// 	if index >= 0 && index < len(h.values) {
+// 		result := append(h.values[:index], h.values[index+1:]...)
+// 		return result
+// 	}
+// 	return h.values
+// }
 
-/**
-* get element value using index
-* [value1 , value2 , ...]
-* seek 0
-* value1
- */
-func (h *HashTable) seek(index int) string {
-	if index >= 0 && index < len(h.values) {
-		return h.values[index]
-	}
-	return ""
-}
+// /**
+// * get element value using index
+// * [value1 , value2 , ...]
+// * seek 0
+// * value1
+//  */
+// func (h *HashTable) seek(index int) string {
+// 	if index >= 0 && index < len(h.values) {
+// 		return h.values[index]
+// 	}
+// 	return ""
+// }
 
-func getElementIndex(element string, array []string) int {
-	for i := range array {
-		if element == array[i] {
-			return i
-			break
-		}
-	}
-	return -1
+// func getElementIndex(element string, array []string) int {
+// 	for i := range array {
+// 		if element == array[i] {
+// 			return i
+// 			break
+// 		}
+// 	}
+// 	return -1
+// }
+
+func (h *HashTable) checkLen(k string) bool {
+	return len(h.values[k]) == 0
 }
