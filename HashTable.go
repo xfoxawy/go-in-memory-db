@@ -15,11 +15,12 @@ func NewHashTable() *HashTable {
 * [index1:value1 ,index2: value2, index3: value3]
  */
 func (h *HashTable) push(k string, v string) map[string]string {
-	if h.checkLen(k) == true {
+	if _, ok := h.values[k]; ok {
+		return h.values
+	} else {
 		h.values[k] = v
+		return h.values
 	}
-	result := h.values
-	return result
 }
 
 /**
@@ -72,7 +73,3 @@ func (h *HashTable) remove(key string) map[string]string {
 // 	}
 // 	return -1
 // }
-
-func (h *HashTable) checkLen(k string) bool {
-	return len(h.values[k]) == 0
-}
