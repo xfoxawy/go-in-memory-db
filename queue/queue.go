@@ -1,6 +1,6 @@
 package queue
 
-import "github.com/alaaelgndy/go-in-memory-db/linkedlist"
+import "github.com/go-in-memory-db/linkedlist"
 
 type Queue struct {
 	Queue *linkedlist.LinkedList
