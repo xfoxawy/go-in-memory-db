@@ -13,8 +13,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alaaelgndy/go-in-memory-db/linkedlist"
-	"github.com/alaaelgndy/go-in-memory-db/queue"
+	"github.com/go-in-memory-db/hashtable"
+	"github.com/go-in-memory-db/linkedlist"
+	"github.com/go-in-memory-db/queue"
 )
 
 const port string = "8080"
@@ -32,15 +33,19 @@ type Database interface {
 	getQueue(k string) (*queue.Queue, error)
 	createQueue(k string) *queue.Queue
 	delQueue(k string)
+	getHashTable(k string) (*hashtable.HashTable, error)
+	createHashTable(k string) *hashtable.HashTable
+	delHashTable(k string)
 	clear()
 }
 
 type database struct {
-	namespace string
-	public    bool
-	data      map[string]string
-	dataList  map[string]*linkedlist.LinkedList
-	queue     map[string]*queue.Queue
+	namespace     string
+	public        bool
+	data          map[string]string
+	dataList      map[string]*linkedlist.LinkedList
+	queue         map[string]*queue.Queue
+	dataHashTable map[string]*hashtable.HashTable
 }
 
 type client struct {
@@ -138,6 +143,27 @@ func (db *database) delQueue(k string) {
 	delete(db.queue, k)
 }
 
+func (db *database) getHashTable(k string) (*hashtable.HashTable, error) {
+	if _, ok := db.dataHashTable[k]; ok {
+		return db.dataHashTable[k], nil
+	}
+
+	return nil, errors.New("not found")
+
+}
+
+func (db *database) createHashTable(k string) *hashtable.HashTable {
+	if _, ok := db.dataHashTable[k]; ok {
+		errors.New("Hash Table Exists")
+	}
+	db.dataHashTable[k] = hashtable.NewHashTable()
+	return db.dataHashTable[k]
+}
+
+func (db *database) delHashTable(k string) {
+	delete(db.dataHashTable, k)
+}
+
 func createMasterDB() *database {
 	db := database{
 		"master",
@@ -145,6 +171,7 @@ func createMasterDB() *database {
 		make(map[string]string),
 		make(map[string]*linkedlist.LinkedList),
 		make(map[string]*queue.Queue),
+		make(map[string]*hashtable.HashTable),
 	}
 	return &db
 }
@@ -321,6 +348,104 @@ func handle(c *client) {
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
+
+			case "hset":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				c.dbpointer.createHashTable(k)
+				write(c.conn, k)
+
+			case "hget":
+				if len(fs) < 3 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				mapKey := fs[2]
+				v, err := c.dbpointer.getHashTable(k)
+
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+				if value, ok := v.Values[mapKey]; ok {
+					write(c.conn, value)
+					continue
+				}
+				write(c.conn, "This Key Does not Exist")
+				continue
+
+			case "hgetall":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				v, err := c.dbpointer.getHashTable(k)
+
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+
+				for k, v := range v.Values {
+					write(c.conn, k+" "+v)
+				}
+
+			case "hdel":
+				if len(fs) < 2 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				if _, err := c.dbpointer.getHashTable(k); err == nil {
+					c.dbpointer.delHashTable(k)
+					write(c.conn, "OK")
+					write(c.conn, k)
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
+
+			case "hpush":
+				if len(fs) < 4 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+
+				k := fs[1]
+				mapKey := fs[2]
+
+				hash, err := c.dbpointer.getHashTable(k)
+				if err != nil {
+					write(c.conn, "Hash table Does not Exist")
+					continue
+				}
+
+				value := fs[3]
+				hash.Values = hash.Push(mapKey, value)
+				write(c.conn, "OK")
+				continue
+
+			case "hrm", "hremove":
+				if len(fs) < 3 {
+					write(c.conn, "UNEXPECTED KEY")
+					continue
+				}
+				k := fs[1]
+				mapKey := fs[2]
+
+				if hash, err := c.dbpointer.getHashTable(k); err == nil {
+
+					hash.Values = hash.Remove(mapKey)
+					write(c.conn, "OK")
+					continue
+				}
+				write(c.conn, "Hash table Does not Exist")
+				write(c.conn, k)
 
 			case "lset":
 				if len(fs) < 2 {
@@ -614,6 +739,7 @@ func handle(c *client) {
 
 						make(map[string]*linkedlist.LinkedList),
 						make(map[string]*queue.Queue),
+						make(map[string]*hashtable.HashTable),
 					}
 					c.dbpointer = Databases[key]
 				}
@@ -678,6 +804,17 @@ func help() string {
 		"QDEQ key \n" +
 		"QENQ key value1 value2 etc \n" +
 		"\nEND OF QUEUE COMMANDS : \n\n" +
+		"\nEND OF LINKED LIST COMMANDS : \n\n" +
+		"\nHASH TABLE COMMANDS : \n\n" +
+		"HSET key \n" +
+		"HGET key \n" +
+		"HDEL key \n" +
+		"HPUSH key value1 value2 etc \n" +
+		"HRM key value1 value2 etc \n" +
+		"HREMOVE key value1 value2 etc \n" +
+		"HUNLINK key index \n" +
+		"HSEEK key index1 index2 etc... \n" +
+		"\nEND OF HASH TABLE COMMANDS : \n\n" +
 		"USE name\n" +
 		"WHICH \n" +
 		"SHOW \n" +
