@@ -78,9 +78,8 @@ func (l *LinkedList) Shift(v string) {
 		start := l.Start
 		new_e := &Element{Value: v, Next: start}
 		l.Start = new_e
+		l.Length++
 	}
-
-	l.Length++
 }
 
 // 8 -> 1 -> 2 ->3
