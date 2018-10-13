@@ -12,6 +12,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/alaaelgndy/go-in-memory-db/linkedlist"
+	"github.com/alaaelgndy/go-in-memory-db/queue"
 )
 
 const port string = "8080"
@@ -23,11 +26,11 @@ type Database interface {
 	isset(k string) bool
 	dump() string
 	name() string
-	getList(k string) (*LinkedList, error)
-	createList(k string) *LinkedList
+	getList(k string) (*linkedlist.LinkedList, error)
+	createList(k string) *linkedlist.LinkedList
 	delList(k string)
-	getQueue(k string) (*Queue, error)
-	createQueue(k string) *Queue
+	getQueue(k string) (*queue.Queue, error)
+	createQueue(k string) *queue.Queue
 	delQueue(k string)
 	clear()
 }
@@ -36,8 +39,8 @@ type database struct {
 	namespace string
 	public    bool
 	data      map[string]string
-	dataList  map[string]*LinkedList
-	queue     map[string]*Queue
+	dataList  map[string]*linkedlist.LinkedList
+	queue     map[string]*queue.Queue
 }
 
 type client struct {
@@ -95,7 +98,7 @@ func (db *database) name() string {
 	return db.namespace
 }
 
-func (db *database) getList(k string) (*LinkedList, error) {
+func (db *database) getList(k string) (*linkedlist.LinkedList, error) {
 	if _, ok := db.dataList[k]; ok {
 		return db.dataList[k], nil
 	}
@@ -104,11 +107,11 @@ func (db *database) getList(k string) (*LinkedList, error) {
 
 }
 
-func (db *database) createList(k string) *LinkedList {
+func (db *database) createList(k string) *linkedlist.LinkedList {
 	if _, ok := db.dataList[k]; ok {
 		errors.New("List Exists")
 	}
-	db.dataList[k] = NewList()
+	db.dataList[k] = linkedlist.NewList()
 	return db.dataList[k]
 }
 
@@ -116,15 +119,15 @@ func (db *database) delList(k string) {
 	delete(db.dataList, k)
 }
 
-func (db *database) createQueue(k string) *Queue {
+func (db *database) createQueue(k string) *queue.Queue {
 	if queue, ok := db.queue[k]; ok {
 		return queue
 	}
-	db.queue[k] = NewQueue()
+	db.queue[k] = queue.NewQueue()
 	return db.queue[k]
 }
 
-func (db *database) getQueue(k string) (*Queue, error) {
+func (db *database) getQueue(k string) (*queue.Queue, error) {
 	if _, ok := db.queue[k]; ok {
 		return db.queue[k], nil
 	}
@@ -140,8 +143,8 @@ func createMasterDB() *database {
 		"master",
 		true,
 		make(map[string]string),
-		make(map[string]*LinkedList),
-		make(map[string]*Queue),
+		make(map[string]*linkedlist.LinkedList),
+		make(map[string]*queue.Queue),
 	}
 	return &db
 }
@@ -230,7 +233,7 @@ func handle(c *client) {
 				queue := c.dbpointer.createQueue(k)
 
 				for i := range v {
-					queue.enqueue(v[i])
+					queue.Enqueue(v[i])
 				}
 
 				write(c.conn, "OK")
@@ -242,11 +245,11 @@ func handle(c *client) {
 				}
 				k := fs[1]
 				if q, err := c.dbpointer.getQueue(k); err == nil {
-					write(c.conn, q.queue.start.value)
-					current := q.queue.start
-					for current.next != nil {
-						current = current.next
-						write(c.conn, current.value)
+					write(c.conn, q.Queue.Start.Value)
+					current := q.Queue.Start
+					for current.Next != nil {
+						current = current.Next
+						write(c.conn, current.Value)
 					}
 					continue
 				}
@@ -272,7 +275,7 @@ func handle(c *client) {
 				}
 				k := fs[1]
 				if queue, err := c.dbpointer.getQueue(k); err == nil {
-					stringVal := strconv.Itoa(queue.size())
+					stringVal := strconv.Itoa(queue.Size())
 					write(c.conn, stringVal)
 					continue
 				}
@@ -285,7 +288,7 @@ func handle(c *client) {
 				}
 				k := fs[1]
 				if queue, err := c.dbpointer.getQueue(k); err == nil {
-					write(c.conn, queue.front())
+					write(c.conn, queue.Front())
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
@@ -297,7 +300,7 @@ func handle(c *client) {
 				}
 				k := fs[1]
 				if queue, err := c.dbpointer.getQueue(k); err == nil {
-					write(c.conn, queue.dequeue())
+					write(c.conn, queue.Dequeue())
 					continue
 				}
 				write(c.conn, "Queue Does not Exist")
@@ -312,7 +315,7 @@ func handle(c *client) {
 
 				if queue, err := c.dbpointer.getQueue(k); err == nil {
 					for i := range v {
-						queue.enqueue(v[i])
+						queue.Enqueue(v[i])
 					}
 					write(c.conn, "OK")
 					continue
@@ -330,7 +333,7 @@ func handle(c *client) {
 				list := c.dbpointer.createList(k)
 
 				for i := range v {
-					list.push(v[i])
+					list.Push(v[i])
 				}
 
 				write(c.conn, "OK")
@@ -343,15 +346,15 @@ func handle(c *client) {
 				k := fs[1]
 				v, err := c.dbpointer.getList(k)
 
-				if err != nil || v.start == nil {
+				if err != nil || v.Start == nil {
 					write(c.conn, "empty or not exit")
 					continue
 				}
-				write(c.conn, v.start.value)
-				current := v.start
-				for current.next != nil {
-					current = current.next
-					write(c.conn, current.value)
+				write(c.conn, v.Start.Value)
+				current := v.Start
+				for current.Next != nil {
+					current = current.Next
+					write(c.conn, current.Value)
 				}
 
 			case "ldel":
@@ -389,7 +392,7 @@ func handle(c *client) {
 				values := fs[2:]
 
 				for i := range values {
-					list.push(values[i])
+					list.Push(values[i])
 				}
 
 				write(c.conn, "OK")
@@ -403,12 +406,12 @@ func handle(c *client) {
 				k := fs[1]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
-					p, err := list.pop()
+					p, err := list.Pop()
 					if err != nil {
 						write(c.conn, "list is empty")
 						continue
 					}
-					write(c.conn, p.value)
+					write(c.conn, p.Value)
 					continue
 				}
 				write(c.conn, "List Does not Exist")
@@ -428,7 +431,7 @@ func handle(c *client) {
 				}
 
 				if list, err := c.dbpointer.getList(k); err == nil {
-					list.shift(v)
+					list.Shift(v)
 					write(c.conn, "OK")
 					continue
 				}
@@ -442,12 +445,12 @@ func handle(c *client) {
 				k := fs[1]
 
 				if list, err := c.dbpointer.getList(k); err == nil {
-					unshifted, err := list.unshift()
+					unshifted, err := list.Unshift()
 					if err != nil {
 						write(c.conn, "list is empty")
 						continue
 					}
-					write(c.conn, unshifted.value)
+					write(c.conn, unshifted.Value)
 					continue
 				}
 				write(c.conn, "List Does not Exist")
@@ -467,7 +470,7 @@ func handle(c *client) {
 				if list, err := c.dbpointer.getList(k); err == nil {
 
 					for i := range values {
-						err := list.remove(values[i])
+						err := list.Remove(values[i])
 						if err != nil {
 							write(c.conn, "list is empty")
 							break
@@ -491,7 +494,7 @@ func handle(c *client) {
 
 					for i := range values {
 						intVal, _ := strconv.Atoi(values[i])
-						err := list.unlink(intVal)
+						err := list.Unlink(intVal)
 						if err != nil {
 							write(c.conn, "LinkedList is empty OR Step Not Exist")
 							break
@@ -522,7 +525,7 @@ func handle(c *client) {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
 					}
-					value, err := list.seek(intVal)
+					value, err := list.Seek(intVal)
 					if err != nil {
 						write(c.conn, "LinkedList is empty OR Step Not Exist")
 						continue
@@ -609,8 +612,8 @@ func handle(c *client) {
 						true,
 						make(map[string]string),
 
-						make(map[string]*LinkedList),
-						make(map[string]*Queue),
+						make(map[string]*linkedlist.LinkedList),
+						make(map[string]*queue.Queue),
 					}
 					c.dbpointer = Databases[key]
 				}
