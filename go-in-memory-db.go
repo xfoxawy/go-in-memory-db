@@ -221,17 +221,20 @@ func main() {
 
 	defer li.Close()
 
+	actionsChannle := make(chan *Actions)
+
 	for {
 		conn, err := li.Accept()
 		client := resolveClinet(conn)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		go handle(client)
+		go handle(client, actionsChannle)
+		go takeAction(actionsChannle)
 	}
 }
 
-func handle(c *client) {
+func handle(c *client, ch chan *Actions) {
 	defer c.conn.Close()
 
 	log.SetOutput(os.Stdout)
@@ -241,7 +244,7 @@ func handle(c *client) {
 	for scanner.Scan() {
 		ln := scanner.Text()
 		fs := strings.Fields(ln)
-
+		ch <- &Actions{fs, c}
 		if len(fs) >= 1 {
 
 			switch strings.ToLower(fs[0]) {
