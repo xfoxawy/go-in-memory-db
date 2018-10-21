@@ -249,55 +249,6 @@ func handle(c *client, ch chan *Actions) {
 
 			switch strings.ToLower(fs[0]) {
 
-			case "help":
-				write(c.conn, help())
-
-			case "qset":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
-				v := fs[2:]
-
-				queue := c.dbpointer.createQueue(k)
-
-				for i := range v {
-					queue.Enqueue(v[i])
-				}
-
-				write(c.conn, "OK")
-
-			case "qget":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
-				if q, err := c.dbpointer.getQueue(k); err == nil {
-					write(c.conn, q.Queue.Start.Value)
-					current := q.Queue.Start
-					for current.Next != nil {
-						current = current.Next
-						write(c.conn, current.Value)
-					}
-					continue
-				}
-				write(c.conn, "Queue Does not Exist")
-
-			case "qdel":
-				if len(fs) < 2 {
-					write(c.conn, "UNEXPECTED KEY")
-					continue
-				}
-				k := fs[1]
-				if _, err := c.dbpointer.getQueue(k); err == nil {
-					c.dbpointer.delQueue(k)
-					write(c.conn, "OK")
-					continue
-				}
-				write(c.conn, "Queue Does not Exist")
-
 			case "qsize":
 				if len(fs) < 2 {
 					write(c.conn, "UNEXPECTED KEY")
