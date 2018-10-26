@@ -14,13 +14,13 @@ type DatabaseInterface interface {
 	Dump() string
 	Name() string
 	GetList(k string) (*linkedlist.LinkedList, error)
-	CreateList(k string) *linkedlist.LinkedList
+	CreateList(k string) (*linkedlist.LinkedList, error)
 	DelList(k string)
 	GetQueue(k string) (*queue.Queue, error)
 	CreateQueue(k string) *queue.Queue
 	DelQueue(k string)
 	GetHashTable(k string) (*hashtable.HashTable, error)
-	CreateHashTable(k string) *hashtable.HashTable
+	CreateHashTable(k string) (*hashtable.HashTable, error)
 	DelHashTable(k string)
 	Clear()
 }
