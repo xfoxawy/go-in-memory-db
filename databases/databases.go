@@ -6,6 +6,7 @@ import (
 	"github.com/go-in-memory-db/queue"
 )
 
+// DatabaseInterface Inteface
 type DatabaseInterface interface {
 	Set(k string, v string) bool
 	Get(k string) (string, error)
@@ -25,6 +26,7 @@ type DatabaseInterface interface {
 	Clear()
 }
 
+// Database struct
 type Database struct {
 	Namespace     string
 	Public        bool
@@ -34,6 +36,7 @@ type Database struct {
 	dataHashTable map[string]*hashtable.HashTable
 }
 
+// CreateMasterDB fucntion
 func CreateMasterDB() *Database {
 	db := Database{
 		"master",
@@ -46,6 +49,7 @@ func CreateMasterDB() *Database {
 	return &db
 }
 
+// GetActiveDatabase function
 func GetActiveDatabase(key string) *Database {
 	db := Database{
 		key,

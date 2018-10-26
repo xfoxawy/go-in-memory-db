@@ -6,6 +6,7 @@ import (
 	"github.com/go-in-memory-db/queue"
 )
 
+// CreateQueue Function
 func (db *Database) CreateQueue(k string) *queue.Queue {
 	if queue, ok := db.queue[k]; ok {
 		return queue
@@ -14,6 +15,7 @@ func (db *Database) CreateQueue(k string) *queue.Queue {
 	return db.queue[k]
 }
 
+// GetQueue Function
 func (db *Database) GetQueue(k string) (*queue.Queue, error) {
 	if _, ok := db.queue[k]; ok {
 		return db.queue[k], nil
@@ -21,6 +23,7 @@ func (db *Database) GetQueue(k string) (*queue.Queue, error) {
 	return nil, errors.New("not found")
 }
 
+// DelQueue Function
 func (db *Database) DelQueue(k string) {
 	delete(db.queue, k)
 }
