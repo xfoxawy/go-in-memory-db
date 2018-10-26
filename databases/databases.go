@@ -18,7 +18,7 @@ type DatabaseInterface interface {
 	CreateList(k string) (*linkedlist.LinkedList, error)
 	DelList(k string)
 	GetQueue(k string) (*queue.Queue, error)
-	CreateQueue(k string) *queue.Queue
+	CreateQueue(k string) (*queue.Queue, error)
 	DelQueue(k string)
 	GetHashTable(k string) (*hashtable.HashTable, error)
 	CreateHashTable(k string) (*hashtable.HashTable, error)
