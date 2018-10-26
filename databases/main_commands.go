@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// Isset function
+// to - do check isset in all data types
 func (db *Database) Isset(k string) bool {
 	if _, ok := db.data[k]; ok {
 		return true
@@ -15,6 +17,7 @@ func (db *Database) Isset(k string) bool {
 	return false
 }
 
+// Dump wihout unit test fuction
 func (db *Database) Dump() string {
 	var content bytes.Buffer
 	if len(db.data) > 0 {
@@ -25,6 +28,8 @@ func (db *Database) Dump() string {
 	return content.String()
 }
 
+// Clear remove all from memory
+// to - do remove from list and other types
 func (db *Database) Clear() {
 	go func() {
 		for k := range db.data {
@@ -33,6 +38,7 @@ func (db *Database) Clear() {
 	}()
 }
 
+// Name without unit test
 func (db *Database) Name() string {
 	return db.Namespace
 }

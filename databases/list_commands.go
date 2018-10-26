@@ -6,6 +6,7 @@ import (
 	"github.com/go-in-memory-db/linkedlist"
 )
 
+// GetList function
 func (db *Database) GetList(k string) (*linkedlist.LinkedList, error) {
 	if _, ok := db.dataList[k]; ok {
 		return db.dataList[k], nil
@@ -15,6 +16,7 @@ func (db *Database) GetList(k string) (*linkedlist.LinkedList, error) {
 
 }
 
+// CreateList function
 func (db *Database) CreateList(k string) (*linkedlist.LinkedList, error) {
 	if v, ok := db.dataList[k]; ok {
 		return v, errors.New("List Exists")
@@ -23,6 +25,7 @@ func (db *Database) CreateList(k string) (*linkedlist.LinkedList, error) {
 	return db.dataList[k], nil
 }
 
+// DelList function
 func (db *Database) DelList(k string) {
 	delete(db.dataList, k)
 }
