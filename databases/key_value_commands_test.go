@@ -2,23 +2,12 @@ package databases
 
 import (
 	"testing"
-
-	"github.com/go-in-memory-db/hashtable"
-	"github.com/go-in-memory-db/linkedlist"
-	"github.com/go-in-memory-db/queue"
 )
 
 var db *Database
 
 func init() {
-	db = &Database{
-		"master",
-		true,
-		make(map[string]string),
-		make(map[string]*linkedlist.LinkedList),
-		make(map[string]*queue.Queue),
-		make(map[string]*hashtable.HashTable),
-	}
+	db = CreateMasterDB()
 }
 
 func TestSet(t *testing.T) {

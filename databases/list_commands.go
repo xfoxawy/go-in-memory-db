@@ -15,12 +15,12 @@ func (db *Database) GetList(k string) (*linkedlist.LinkedList, error) {
 
 }
 
-func (db *Database) CreateList(k string) *linkedlist.LinkedList {
-	if _, ok := db.dataList[k]; ok {
-		errors.New("List Exists")
+func (db *Database) CreateList(k string) (*linkedlist.LinkedList, error) {
+	if v, ok := db.dataList[k]; ok {
+		return v, errors.New("List Exists")
 	}
 	db.dataList[k] = linkedlist.NewList()
-	return db.dataList[k]
+	return db.dataList[k], nil
 }
 
 func (db *Database) DelList(k string) {
