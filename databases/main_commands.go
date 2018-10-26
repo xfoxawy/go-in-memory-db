@@ -31,11 +31,9 @@ func (db *Database) Dump() string {
 // Clear remove all from memory
 // to - do remove from list and other types
 func (db *Database) Clear() {
-	go func() {
-		for k := range db.data {
-			delete(db.data, k)
-		}
-	}()
+	for k := range db.data {
+		delete(db.data, k)
+	}
 }
 
 // Name without unit test

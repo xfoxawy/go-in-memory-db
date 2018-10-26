@@ -16,3 +16,14 @@ func TestIsset(t *testing.T) {
 		t.Error("expected", "true", "got", secondRes)
 	}
 }
+
+func TestClear(t *testing.T) {
+	key := randString(5)
+	db.Set(key, "value")
+	beforeClear, _ := db.Get(key)
+	db.Clear()
+	afterClear, _ := db.Get(key)
+	if beforeClear == afterClear {
+		t.Error(afterClear)
+	}
+}
