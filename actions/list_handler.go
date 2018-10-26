@@ -9,7 +9,7 @@ func (a *Actions) lSetHandler() string {
 	k := a.StringArray[1]
 	v := a.StringArray[2:]
 
-	list := a.Client.Dbpointer.CreateList(k)
+	list, _ := a.Client.Dbpointer.CreateList(k)
 
 	for i := range v {
 		list.Push(v[i])
