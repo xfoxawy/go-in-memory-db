@@ -4,15 +4,9 @@ import (
 	"testing"
 )
 
-var db *Database
-
-func init() {
-	db = CreateMasterDB()
-}
-
 func TestSet(t *testing.T) {
-	key := "key"
-	value := "value"
+	key := randString(12)
+	value := randString(12)
 	db.Set(key, value)
 	v, err := db.Get(key)
 	if err != nil {
@@ -26,7 +20,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	_, err := db.Get("not exist value")
+	_, err := db.Get(randString(12))
 	if err == nil {
 		t.Error("expected", "error", "got nothing")
 		return
@@ -34,11 +28,11 @@ func TestGet(t *testing.T) {
 }
 
 func TestDel(t *testing.T) {
-	key := "key"
-	value := "value"
+	key := randString(12)
+	value := randString(12)
 	db.Set(key, value)
 	getValue, _ := db.Get(key)
-	delValue := db.Del("key")
+	delValue := db.Del(key)
 	if delValue != true {
 		t.Error("expected", "true", "got", delValue)
 	}

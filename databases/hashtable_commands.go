@@ -15,12 +15,12 @@ func (db *Database) GetHashTable(k string) (*hashtable.HashTable, error) {
 
 }
 
-func (db *Database) CreateHashTable(k string) *hashtable.HashTable {
-	if _, ok := db.dataHashTable[k]; ok {
-		errors.New("Hash Table Exists")
+func (db *Database) CreateHashTable(k string) (*hashtable.HashTable, error) {
+	if v, ok := db.dataHashTable[k]; ok {
+		return v, errors.New("Hash Table Exists")
 	}
 	db.dataHashTable[k] = hashtable.NewHashTable()
-	return db.dataHashTable[k]
+	return db.dataHashTable[k], nil
 }
 
 func (db *Database) DelHashTable(k string) {

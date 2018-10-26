@@ -1,26 +1,8 @@
 package databases
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 )
-
-// db created before in key value commands file
-func init() {
-	db = CreateMasterDB()
-	rand.Seed(time.Now().UnixNano())
-}
-
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randString(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
 
 func TestCreateList(t *testing.T) {
 	key := randString(12)
@@ -48,7 +30,7 @@ func TestGetList(t *testing.T) {
 	key := randString(12)
 	res, err := db.GetList(key)
 	if err == nil {
-		t.Error("expected", err, "got", res)
+		t.Error("expected", "error", "got", res)
 	}
 	newList, _ := db.CreateList(key)
 	secondRes, secondErr := db.GetList(key)
