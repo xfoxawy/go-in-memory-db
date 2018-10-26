@@ -7,12 +7,12 @@ import (
 )
 
 // CreateQueue Function
-func (db *Database) CreateQueue(k string) *queue.Queue {
+func (db *Database) CreateQueue(k string) (*queue.Queue, error) {
 	if queue, ok := db.queue[k]; ok {
-		return queue
+		return queue, errors.New("Hash Table Exists")
 	}
 	db.queue[k] = queue.NewQueue()
-	return db.queue[k]
+	return db.queue[k], nil
 }
 
 // GetQueue Function
