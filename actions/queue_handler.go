@@ -8,7 +8,7 @@ func (a *Actions) qSetHanlder() {
 	k := a.StringArray[1]
 	v := a.StringArray[2:]
 
-	queue := a.Client.Dbpointer.CreateQueue(k)
+	queue, _ := a.Client.Dbpointer.CreateQueue(k)
 
 	for i := range v {
 		queue.Enqueue(v[i])
