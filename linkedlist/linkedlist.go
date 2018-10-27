@@ -4,22 +4,25 @@ import (
 	"errors"
 )
 
+// Element struct
 type Element struct {
 	Value string
 	Next  *Element
 }
 
-// note LinkedList starts from zero index
+// LinkedList is start from zero index
 type LinkedList struct {
 	Start  *Element
 	end    *Element
 	Length int
 }
 
+// NewList generator
 func NewList() *LinkedList {
 	return &LinkedList{Length: 0}
 }
 
+// Push in list
 func (l *LinkedList) Push(v string) {
 	e := Element{Value: v}
 	l.append(&e)
@@ -37,6 +40,7 @@ func (l *LinkedList) append(e *Element) {
 	l.Length++
 }
 
+// Pop from the end
 func (l *LinkedList) Pop() (*Element, error) {
 	if l.Length == 0 {
 		return nil, errors.New("LinkedList is empty")
@@ -48,25 +52,25 @@ func (l *LinkedList) Pop() (*Element, error) {
 		l.end = nil
 		l.Length--
 		return popped, nil
-	} else {
-		counter := l.Length
-		pointer := l.Start
-
-		for counter != 2 {
-			pointer = pointer.Next
-			counter--
-		}
-
-		l.end = pointer
-		popped := pointer.Next
-		l.end.Next = nil
-		l.Length--
-
-		return popped, nil
 	}
+	// l.length > 1
+	counter := l.Length
+	pointer := l.Start
+
+	for counter != 2 {
+		pointer = pointer.Next
+		counter--
+	}
+
+	l.end = pointer
+	popped := pointer.Next
+	l.end.Next = nil
+	l.Length--
+
+	return popped, nil
 }
 
-// should push a new element in front
+// Shift should push a new element in front
 // ex 1 -> 2 -> 3 .
 // shift(8)
 // 8 -> 1 -> 2 ->3
@@ -76,26 +80,26 @@ func (l *LinkedList) Shift(v string) {
 		l.append(&e)
 	} else {
 		start := l.Start
-		new_e := &Element{Value: v, Next: start}
-		l.Start = new_e
+		newE := &Element{Value: v, Next: start}
+		l.Start = newE
 		l.Length++
 	}
 }
 
+// Unshift (8)
 // 8 -> 1 -> 2 ->3
-// unshift(8)
 //  1 -> 2 -> 3
 func (l *LinkedList) Unshift() (*Element, error) {
 	if l.Length == 0 {
 		return nil, errors.New("LinkedList is empty")
 	}
-	old_start := l.Start
-	l.Start = old_start.Next
+	oldStart := l.Start
+	l.Start = oldStart.Next
 	l.Length--
-	return old_start, nil
+	return oldStart, nil
 }
 
-// removes an element
+// Remove an element
 // 1->2->3
 // remove(2)
 // 1->3
@@ -126,7 +130,7 @@ func (l *LinkedList) Remove(value string) error {
 	return nil
 }
 
-// remove element by step
+// Unlink element by step
 // 4 -> 5 ->6
 // remove(2)
 // 4 -> 5
@@ -159,8 +163,8 @@ func (l *LinkedList) Unlink(step int) error {
 	return nil
 }
 
+// Seek (1)
 // 4->5->6
-// seek(1)
 // 5
 // seek(0)
 // 4
