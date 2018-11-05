@@ -31,7 +31,6 @@ func TakeAction(ch chan *Actions) {
 			}
 			data.qSetHanlder()
 			write(conn, "OK")
-
 		case "qget":
 			if len(command) < 2 {
 				write(conn, "UNEXPECTED KEY")
