@@ -28,7 +28,7 @@ func (t *Tree) addMainRoot(node *Node) *Tree {
 
 func (t *Tree) insert(node *Node) *Tree {
 	var tree *Tree
-	if t.Root.parent == nil {
+	if node.parent == nil {
 		tree = t.addMainRoot(node)
 	} else {
 		tree = &Tree{
@@ -39,6 +39,11 @@ func (t *Tree) insert(node *Node) *Tree {
 			},
 			t.Size + 1,
 		}
+		t.Root.childs = tree
 	}
 	return tree
+}
+
+func (t *Tree) retrive() *Tree {
+	return t
 }
