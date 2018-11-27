@@ -1,47 +1,54 @@
 package trees
 
 type Tree struct {
-	Root *Node
-	Size int
+	node *Node
 }
 
 type Node struct {
-	name   string
-	parent *Node
-	childs *Tree
+	id    int
+	name  string
+	left  *Node
+	right *Node
 }
 
 func newTree() *Tree {
-	return &Tree{&Node{}, 0}
+	return &Tree{nil}
 }
 
-func (t *Tree) addMainRoot(node *Node) *Tree {
-	return &Tree{
+func addRoot(node *Node) *Tree {
+	newTree := &Tree{
 		&Node{
+			node.id,
 			node.name,
 			nil,
 			nil,
 		},
-		t.Size + 1,
 	}
+	return newTree
 }
 
-func (t *Tree) insert(node *Node) *Tree {
-	var tree *Tree
-	if node.parent == nil {
-		tree = t.addMainRoot(node)
-	} else {
-		tree = &Tree{
-			&Node{
-				node.name,
-				node.parent,
-				nil,
-			},
-			t.Size + 1,
-		}
-		t.Root.childs = tree
+func (n *Node) insert(node *Node) *Node {
+	var newNode *Node
+	if node == nil {
+		newNode = addRoot(node).node
 	}
-	return tree
+	if node.id > n.id {
+		if n.right == nil {
+			n.right = &Node{node.id, node.name, nil, nil}
+			newNode = n.right
+		} else {
+			newNode = n.right.insert(node)
+		}
+	}
+	if node.id < n.id {
+		if n.left == nil {
+			n.left = &Node{node.id, node.name, nil, nil}
+			newNode = n.left
+		} else {
+			newNode = n.left.insert(node)
+		}
+	}
+	return newNode
 }
 
 func (t *Tree) retrive() *Tree {
