@@ -105,3 +105,17 @@ func TestHasRight(t *testing.T) {
 		t.Error("expected", true, "got", false)
 	}
 }
+
+func TestMin(t *testing.T) {
+	lastBinaryTree.node.insert(&Node{1, "min node", nil, nil})
+	if lastBinaryTree.node.min().id != 1 {
+		t.Error("expected", 3, "got", lastBinaryTree.node.min().id)
+	}
+}
+
+func TestMax(t *testing.T) {
+	lastBinaryTree.node.insert(&Node{55, "max node", nil, nil})
+	if lastBinaryTree.node.max().id != 55 {
+		t.Error("expected", 55, "got", lastBinaryTree.node.max().id)
+	}
+}

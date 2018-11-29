@@ -83,3 +83,17 @@ func (n *Node) hasLeft() bool {
 func (n *Node) hasRight() bool {
 	return n.right != nil
 }
+
+func (n *Node) min() *Node {
+	if !n.hasLeft() {
+		return n
+	}
+	return n.left.min()
+}
+
+func (n *Node) max() *Node {
+	if !n.hasRight() {
+		return n
+	}
+	return n.right.max()
+}
