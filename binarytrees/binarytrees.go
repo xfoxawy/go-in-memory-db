@@ -1,6 +1,10 @@
 package binarytrees
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/go-in-memory-db/linkedlist"
+)
 
 // BinaryTree root
 type BinaryTree struct {
@@ -9,10 +13,11 @@ type BinaryTree struct {
 
 // Node struct
 type Node struct {
-	id    int
-	name  string
-	left  *Node
-	right *Node
+	id      int
+	name    string
+	payload *linkedlist.LinkedList
+	left    *Node
+	right   *Node
 }
 
 func newBinaryTree() *BinaryTree {
@@ -24,6 +29,7 @@ func addRoot(node *Node) *BinaryTree {
 		&Node{
 			node.id,
 			node.name,
+			linkedlist.NewList(),
 			nil,
 			nil,
 		},
@@ -38,7 +44,7 @@ func (n *Node) insert(node *Node) *Node {
 	}
 	if node.id > n.id {
 		if n.right == nil {
-			n.right = &Node{node.id, node.name, nil, nil}
+			n.right = &Node{node.id, node.name, node.payload, nil, nil}
 			newNode = n.right
 		} else {
 			newNode = n.right.insert(node)
@@ -46,7 +52,7 @@ func (n *Node) insert(node *Node) *Node {
 	}
 	if node.id < n.id {
 		if n.left == nil {
-			n.left = &Node{node.id, node.name, nil, nil}
+			n.left = &Node{node.id, node.name, node.payload, nil, nil}
 			newNode = n.left
 		} else {
 			newNode = n.left.insert(node)
@@ -96,4 +102,8 @@ func (n *Node) max() *Node {
 		return n
 	}
 	return n.right.max()
+}
+
+func (n *Node) getNodePayload() *linkedlist.LinkedList {
+	return n.payload
 }
