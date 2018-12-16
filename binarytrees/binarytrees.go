@@ -24,6 +24,16 @@ func newBinaryTree() *BinaryTree {
 	return &BinaryTree{nil}
 }
 
+func createNode(id int, name string, payload *linkedlist.LinkedList) *Node {
+	return &Node{
+		id,
+		name,
+		payload,
+		nil,
+		nil,
+	}
+}
+
 func addRoot(node *Node) *BinaryTree {
 	newBinaryTree := &BinaryTree{
 		&Node{

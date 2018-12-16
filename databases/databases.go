@@ -1,6 +1,7 @@
 package databases
 
 import (
+	"github.com/go-in-memory-db/binarytrees"
 	"github.com/go-in-memory-db/hashtable"
 	"github.com/go-in-memory-db/linkedlist"
 	"github.com/go-in-memory-db/queue"
@@ -23,6 +24,9 @@ type DatabaseInterface interface {
 	GetHashTable(k string) (*hashtable.HashTable, error)
 	CreateHashTable(k string) (*hashtable.HashTable, error)
 	DelHashTable(k string)
+	GetBinaryTree(k string) (*binarytrees.BinaryTree, error)
+	CreateBinaryTree(k string) (*binarytrees.BinaryTree, error)
+	DelBinaryTree(k string)
 	Clear()
 }
 
@@ -34,6 +38,7 @@ type Database struct {
 	dataList      map[string]*linkedlist.LinkedList
 	queue         map[string]*queue.Queue
 	dataHashTable map[string]*hashtable.HashTable
+	binarytree    map[string]*binarytrees.BinaryTree
 }
 
 // CreateMasterDB fucntion
@@ -45,6 +50,7 @@ func CreateMasterDB() *Database {
 		make(map[string]*linkedlist.LinkedList),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
+		make(map[string]*binarytrees.BinaryTree),
 	}
 	return &db
 }
@@ -59,6 +65,7 @@ func GetActiveDatabase(key string) *Database {
 		make(map[string]*linkedlist.LinkedList),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
+		make(map[string]*binarytrees.BinaryTree),
 	}
 	return &db
 }
