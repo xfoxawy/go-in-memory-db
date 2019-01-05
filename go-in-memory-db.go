@@ -12,8 +12,6 @@ var addr = ":6380"
 
 func main() {
 
-	actionsChannle := make(chan *actions.Actions)
-
 	go log.Printf("started server at %s", addr)
 	err := redcon.ListenAndServe(addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
@@ -26,8 +24,8 @@ func main() {
 
 			client := clients.ResolveClinet(conn)
 
-			go handle(client, actionsChannle, stringCommands)
-			go actions.TakeAction(actionsChannle)
+			action := handle(client, stringCommands)
+			actions.TakeAction(action)
 		},
 		func(conn redcon.Conn) bool {
 			// use this function to accept or deny the connection.
@@ -44,6 +42,6 @@ func main() {
 	}
 }
 
-func handle(c *clients.Client, ch chan *actions.Actions, fs []string) {
-	ch <- &actions.Actions{fs, c}
+func handle(c *clients.Client, fs []string) *actions.Actions {
+	return &actions.Actions{fs, c}
 }
