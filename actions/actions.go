@@ -278,5 +278,7 @@ func TakeAction(data *Actions) {
 }
 
 func write(c redcon.Conn, s string) {
-	c.WriteString(s)
+	if s != "" {
+		c.WriteString(s)
+	}
 }
