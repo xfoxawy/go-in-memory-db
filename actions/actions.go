@@ -1,10 +1,10 @@
 package actions
 
 import (
-	"io"
 	"strings"
 
 	"github.com/go-in-memory-db/clients"
+	"github.com/redcon"
 )
 
 type Actions struct {
@@ -277,6 +277,6 @@ func TakeAction(ch chan *Actions) {
 	}
 }
 
-func write(w io.Writer, s string) {
-	io.WriteString(w, s+"\n")
+func write(c redcon.Conn, s string) {
+	c.WriteString(s)
 }
