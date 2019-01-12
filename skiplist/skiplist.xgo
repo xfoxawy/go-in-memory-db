@@ -1,0 +1,295 @@
+/**
+* This code inspired by https://github.com/sean-public/fast-skiplist
+* http://ticki.github.io/blog/skip-lists-done-right/
+ */
+package skiplist
+
+import (
+	"math"
+	"math/rand"
+	"sync"
+	"time"
+)
+
+const (
+	// DefaultMaxLevel for a single skipßlist
+	DefaultMaxLevel int = 18
+	// DefaultProbability coin flip probability
+	DefaultProbability float64 = 1 / math.E
+)
+
+// Node of next Elements
+type Node struct {
+	next []*Element
+}
+
+// Element represents single value in SkipList
+type Element struct {
+	Node
+	key   int64
+	value interface{}
+}
+
+// Key Retreive Single Element Kye
+func (e *Element) Key() int64 {
+	return e.key
+}
+
+// Value Retreives Single Element Value
+func (e *Element) Value() interface{} {
+	return e.value
+}
+
+// Next gets first Element in Next Node of Elements
+func (e *Element) Next() *Element {
+	return e.Node.next[0]
+}
+
+// SkipList is a structure represents the list
+type SkipList struct {
+	Node
+	maxLevel      int
+	Length        int
+	randSource    rand.Source
+	probability   float64
+	probTable     []float64
+	mutex         sync.RWMutex
+	prevNodeCache []*Node
+}
+
+func (l *SkipList) Front() *Element {
+	return l.next[0]
+}
+
+// SetProbability changes the current P value of the list.
+// It doesn't alter any existing data, only changes how future insert heights are calculated.
+func (l *SkipList) SetProbability(newProbability float64) {
+	l.probability = newProbability
+	l.probTable = probabilityTable(l.probability, l.maxLevel)
+}
+
+// probabilityTable calculates in advance the probability of a new node having a given level.
+// probability is in [0, 1], MaxLevel is (0, 64]
+// Returns a table of floating point probabilities that each level should be included during an insert.
+func probabilityTable(probability float64, MaxLevel int) (table []float64) {
+	for i := 1; i <= MaxLevel; i++ {
+		prob := math.Pow(probability, float64(i-1))
+		table = append(table, prob)
+	}
+	return table
+}
+
+func (l *SkipList) randLevel() (level int) {
+	// random number source only has Int63(), so we have to produce a float64 from it
+	r := float64(rand.Int63()) / (1 << 63)
+	level = 1
+
+	for level < l.maxLevel && r < l.probTable[level] {
+		level++
+	}
+	return level
+}
+
+func (l *SkipList) getPrevNodes(key int64) []*Node {
+	var prevnode = &l.Node
+	var nextElement *Element
+
+	prevnodes := l.prevNodeCache
+
+	for i := l.maxLevel - 1; i >= 0; i-- {
+		nextElement = prevnode.next[i]
+
+		for nextElement != nil && key > nextElement.key {
+			prevnode = &nextElement.Node
+			nextElement = nextElement.next[i]
+		}
+
+		prevnodes[i] = prevnode
+
+	}
+
+	return prevnodes
+}
+
+func (l *SkipList) Set(key int64, value interface{}) *Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	var element *Element
+	prevnodes := l.getPrevNodes(key)
+
+	if element = prevnodes[0].next[0]; element != nil && element.key <= key {
+		element.value = value
+		return element
+	}
+
+	element = &Element{
+		Node: Node{
+			next: make([]*Element, l.randLevel()),
+		},
+		key:   key,
+		value: value,
+	}
+
+	for i := range element.next {
+		element.next[i] = prevnodes[i].next[i]
+		prevnodes[i].next[i] = element
+	}
+
+	l.Length++
+	return element
+}
+
+func (l *SkipList) After(key int64, span int) []*Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	var prevnode = &l.Node
+	var nextElement *Element
+	var count = 0
+	result := make([]*Element, span)
+
+	for i := l.maxLevel - 1; i >= 0; i-- {
+		nextElement = prevnode.next[i]
+
+		for nextElement != nil && nextElement.key > key && count <= span {
+			result[count] = nextElement
+			prevnode = &nextElement.Node
+			nextElement = nextElement.next[i]
+			count++
+		}
+	}
+
+	if len(result) != 0 {
+		return result
+	}
+
+	return nil
+}
+
+func (l *SkipList) Before(key int64, span int) []*Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	var prevnode = &l.Node
+	var nextElement *Element
+	var result []*Element
+	var count = 0
+
+	for i := l.maxLevel - 1; i >= 0; i-- {
+		nextElement = prevnode.next[i]
+
+		if nextElement != nil && nextElement.key >= key {
+			break
+		}
+
+		for nextElement != nil && nextElement.key < key && count <= span {
+			result = append(result, nextElement)
+			prevnode = &nextElement.Node
+			nextElement = nextElement.next[i]
+			count++
+		}
+	}
+
+	if len(result) != 0 {
+		return result
+	}
+
+	return nil
+}
+
+func (l *SkipList) Between(start int64, end int64) []*Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	if start > end {
+		return nil
+	}
+
+	var prevnode = &l.Node
+	var nextElement *Element
+	var result []*Element
+
+	for i := l.maxLevel - 1; i >= 0; i-- {
+		nextElement = prevnode.next[i]
+
+		for nextElement != nil && nextElement.key >= start && nextElement.key <= end {
+			result = append(result, nextElement)
+			prevnode = &nextElement.Node
+			nextElement = nextElement.next[i]
+		}
+	}
+
+	if len(result) != 0 {
+		return result
+	}
+
+	return nil
+}
+
+func (l *SkipList) Get(key int64) *Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	var prevnode = &l.Node
+	var next *Element
+
+	for i := l.maxLevel - 1; i >= 0; i-- {
+		next = prevnode.next[i]
+
+		for next != nil && key > next.key {
+			prevnode = &next.Node
+			next = next.next[i]
+		}
+	}
+
+	if next != nil && next.key <= key {
+		return next
+	}
+
+	return nil
+}
+
+// Remove deletes an element from the list.
+// Returns removed element pointer if found, nil if not found.
+// Locking is optimistic and happens only after searching with a fast check on adjacent nodes after locking.
+func (l *SkipList) Remove(key int64) *Element {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	prevs := l.getPrevNodes(key)
+
+	// found the element, remove it
+	if element := prevs[0].next[0]; element != nil && element.key <= key {
+		for k, v := range element.next {
+			prevs[k].next[k] = v
+		}
+
+		l.Length--
+		return element
+	}
+
+	return nil
+}
+
+// NewWithMaxLevel creates a new skip list with MaxLevel set to the provided number.
+// Returns a pointer to the new list.
+func NewWithMaxLevel(maxLevel int) *SkipList {
+	if maxLevel < 1 || maxLevel > 64 {
+		panic("maxLevel for a SkipList must be a positive integer <= 64")
+	}
+
+	return &SkipList{
+		Node:          Node{next: make([]*Element, DefaultMaxLevel)},
+		prevNodeCache: make([]*Node, DefaultMaxLevel),
+		maxLevel:      maxLevel,
+		randSource:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		probability:   DefaultProbability,
+		probTable:     probabilityTable(DefaultProbability, DefaultMaxLevel),
+	}
+}
+
+// New creates a new skip list with default parameters. Returns a pointer to the new list.
+func New() *SkipList {
+	return NewWithMaxLevel(DefaultMaxLevel)
+}
