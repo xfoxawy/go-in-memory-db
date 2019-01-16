@@ -16,29 +16,31 @@ type logging struct {
 // this is the first function will called from out side
 // first validation depend our sets in newLogging
 // second run log in newLogging struct
-func log(loggingType string, loggingContent string, loggingInOption string) {
+func log(loggingType string, loggingInOption string, loggingContent string) bool {
 
 	newLogging := newLogging()
 	validation := newLogging.validateLogParams(loggingType, loggingInOption)
-	if !validation {
-		return
+
+	if validation == false {
+		return false
 	}
 
 	newLogging.finalType = loggingType
 	newLogging.finalOption = loggingInOption
 	newLogging.content = loggingContent
 	newLogging.log()
+	return true
 }
 
 // newLogging func
 // create newLogging
 func newLogging() *logging {
 	return &logging{
-		loggingTypes:     []string{"user", "application"},
-		loggingInOptions: []string{"file"},
-		nil,
-		nil,
-		nil,
+		[]string{"user", "application"},
+		[]string{"file"},
+		"",
+		"",
+		"",
 	}
 }
 
@@ -50,9 +52,9 @@ func (nl logging) validateLogParams(loggingType string, loggingInOption string) 
 	return false
 }
 
-// func (nl logging) log() {
-//
-// }
+func (nl logging) log() {
+
+}
 
 // in_array func
 // helper function in valiadtion
