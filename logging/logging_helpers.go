@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"os"
 )
 
@@ -15,7 +15,8 @@ func writeInFile(filePath string, content string) bool {
 	defer f.Close()
 
 	log.SetOutput(f)
-	log.Println(content)
+	log.SetFormatter(&log.JSONFormatter{})
+	log.Warnln(content)
 	mutex.Unlock()
 	return true
 }
