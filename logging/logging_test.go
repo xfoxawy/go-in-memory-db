@@ -1,16 +1,9 @@
 package logging
 
 import (
+	"os"
 	"testing"
 )
-
-func TestLog(t *testing.T) {
-	log := log("user", "file", "content here")
-
-	if log == false {
-		t.Error("error in log func")
-	}
-}
 
 func TestInArray(t *testing.T) {
 	check := in_array("string", []string{"string", "alaa"})
@@ -29,5 +22,28 @@ func TestvalidateLogParams(t *testing.T) {
 	validation = newLog.validateLogParams("applicatio", "fil")
 	if validation != false {
 		t.Error("error in validation func")
+	}
+}
+
+func TestCreatefile(t *testing.T) {
+
+	filePath := "../logs/alaa.log"
+	createFile(filePath)
+	var _, err = os.Stat(filePath)
+
+	if os.IsNotExist(err) {
+		t.Error("error in create file func")
+	}
+	os.Remove(filePath)
+}
+
+func TestWriteInFile(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		check := writeInFile("../logs/fortest.log", "content here of error")
+
+		if check == false {
+			t.Error("error in write in file function")
+
+		}
 	}
 }
