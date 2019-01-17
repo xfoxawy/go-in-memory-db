@@ -1,6 +1,8 @@
 package logging
 
 import (
+	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -73,7 +75,10 @@ func (nl logging) startLogProcess() {
 
 func (nl logging) logInFile() {
 
-	logFilesPath := "../logs/"
+	wd, _ := os.Getwd()
+	parent := filepath.Dir(wd)
+
+	logFilesPath := parent + "/go-in-memory-db/logs/"
 	fileName := nl.finalType + nl.finalOption + ".log"
 
 	createdFile := createFile(logFilesPath + fileName)
