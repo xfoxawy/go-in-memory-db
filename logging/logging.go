@@ -82,5 +82,5 @@ func (nl logging) logInFile() {
 	fileName := nl.finalType + nl.finalOption + ".log"
 
 	createdFile := createFile(logFilesPath + fileName)
-	writeInFile(createdFile, nl.content)
+	writeInFile(createdFile, nl.content, nl.finalType)
 }

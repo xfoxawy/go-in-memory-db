@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func writeInFile(filePath string, content string) bool {
+func writeInFile(filePath string, content string, logLevel string) bool {
 
 	mutex.Lock()
 	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -16,7 +16,11 @@ func writeInFile(filePath string, content string) bool {
 
 	log.SetOutput(f)
 	log.SetFormatter(&log.JSONFormatter{})
-	log.Warnln(content)
+	if logLevel == "application" {
+		log.Fatalln(content)
+	} else {
+		log.Warnln(content)
+	}
 	mutex.Unlock()
 	return true
 }
