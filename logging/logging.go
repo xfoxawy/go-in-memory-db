@@ -24,7 +24,7 @@ var (
 // this is the first function will called from out side
 // first validation depend our sets in newLogging
 // second run log in newLogging struct
-func loggingLog(loggingType string, loggingInOption string, loggingContent string) bool {
+func LoggingLog(loggingType string, loggingInOption string, loggingContent string) bool {
 
 	newLogging := newLogging()
 	validation := newLogging.validateLogParams(loggingType, loggingInOption)
