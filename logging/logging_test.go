@@ -25,7 +25,7 @@ func TestvalidateLogParams(t *testing.T) {
 	}
 }
 
-func TestCreatefile(t *testing.T) {
+func TestCreateFile(t *testing.T) {
 
 	filePath := "../logs/alaa.log"
 	createFile(filePath)
