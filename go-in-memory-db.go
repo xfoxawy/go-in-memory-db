@@ -6,7 +6,7 @@ import (
 	"github.com/go-in-memory-db/actions"
 	"github.com/go-in-memory-db/clients"
 	"github.com/go-in-memory-db/logging"
-	"github.com/redcon"
+	"github.com/tidwall/redcon"
 )
 
 var addr = ":6380"
