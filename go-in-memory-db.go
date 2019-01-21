@@ -1,20 +1,15 @@
 package main
 
 import (
-	"bufio"
-	"flag"
-	"fmt"
 	"log"
-	"net"
-	"os"
-	"strings"
 
 	"github.com/go-in-memory-db/actions"
 	"github.com/go-in-memory-db/clients"
 	"github.com/go-in-memory-db/logging"
+	"github.com/redcon"
 )
 
-const port string = "8080"
+var addr = ":6380"
 
 func main() {
 
@@ -24,49 +19,36 @@ func main() {
 		}
 	}()
 
-	portFlag := flag.String("port", port, "connection port")
-	flag.Parse()
+	go log.Printf("started server at %s", addr)
+	err := redcon.ListenAndServe(addr,
+		func(conn redcon.Conn, cmd redcon.Command) {
 
-	port := fmt.Sprintf(":%s", *portFlag)
+			var stringCommands []string
 
-	fmt.Println("initiating DB connection on port: " + port)
+			for _, v := range cmd.Args {
+				stringCommands = append(stringCommands, string(v))
+			}
 
-	li, err := net.Listen("tcp", port)
+			client := clients.ResolveClinet(conn)
 
+			action := handle(client, stringCommands)
+			actions.TakeAction(action)
+		},
+		func(conn redcon.Conn) bool {
+			// use this function to accept or deny the connection.
+			// log.Printf("accept: %s", conn.RemoteAddr())
+			return true
+		},
+		func(conn redcon.Conn, err error) {
+			// this is called when the connection has been closed
+			// log.Printf("closed: %s, err: %v", conn.RemoteAddr(), err)
+		},
+	)
 	if err != nil {
-		log.Fatalln(err)
-	}
-
-	defer li.Close()
-
-	actionsChannle := make(chan *actions.Actions)
-
-	for {
-		conn, err := li.Accept()
-		client := clients.ResolveClinet(conn)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		go handle(client, actionsChannle)
-		go actions.TakeAction(actionsChannle)
+		log.Fatal(err)
 	}
 }
 
-func handle(c *clients.Client, ch chan *actions.Actions) {
-	defer c.Conn.Close()
-
-	log.SetOutput(os.Stdout)
-
-	scanner := bufio.NewScanner(c.Conn)
-
-	for scanner.Scan() {
-		ln := scanner.Text()
-		fs := strings.Fields(ln)
-		ch <- &actions.Actions{fs, c}
-	}
-
-	if err := scanner.Err(); err != nil {
-		delete(c.GetConnections(), c.Address)
-		fmt.Fprintln(os.Stderr, c.Address+" connection is closed")
-	}
+func handle(c *clients.Client, fs []string) *actions.Actions {
+	return &actions.Actions{fs, c}
 }
