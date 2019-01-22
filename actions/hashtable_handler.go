@@ -33,7 +33,7 @@ func (a *Actions) hGetAllHandler() string {
 	}
 
 	for k, v := range v.Values {
-		write(a.Client.Conn, k+" "+v)
+		write(a.Client.Conn, k+" "+v, false)
 	}
 	return ""
 }

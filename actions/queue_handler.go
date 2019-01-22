@@ -20,11 +20,11 @@ func (a *Actions) qGetHandler() string {
 
 	k := a.StringArray[1]
 	if q, err := a.Client.Dbpointer.GetQueue(k); err == nil {
-		write(a.Client.Conn, q.Queue.Start.Value)
+		write(a.Client.Conn, q.Queue.Start.Value, false)
 		current := q.Queue.Start
 		for current.Next != nil {
 			current = current.Next
-			write(a.Client.Conn, current.Value)
+			write(a.Client.Conn, current.Value, false)
 		}
 		return ""
 	}
