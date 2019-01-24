@@ -1,14 +1,13 @@
 package clients
 
 import (
-	"net"
-
 	"github.com/go-in-memory-db/databases"
+	"github.com/tidwall/redcon"
 )
 
 type Client struct {
 	Address   string
-	Conn      net.Conn
+	Conn      redcon.Conn
 	Dbpointer databases.DatabaseInterface
 }
 
@@ -26,8 +25,8 @@ var (
 	Connections = make(map[string]*Client)
 )
 
-func ResolveClinet(conn net.Conn) *Client {
-	addr := conn.RemoteAddr().String()
+func ResolveClinet(conn redcon.Conn) *Client {
+	addr := conn.RemoteAddr()
 	if _, ok := Connections[addr]; ok == false {
 		Connections[addr] = &Client{
 			addr,
