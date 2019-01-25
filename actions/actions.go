@@ -272,10 +272,10 @@ func TakeAction(ch chan *Actions) {
 			publish := data.publishHandler()
 			write(conn, publish)
 
-		// case "subscribe":
-		// 	subscribe := data.subscribeHandler()
-		// 	write(conn, subscribe)
-		//
+		case "subscribe":
+			subscribe := data.subscribeHandler()
+			write(conn, subscribe)
+
 		case "bye":
 			data.byeHandler()
 

@@ -19,6 +19,12 @@ func (a *Actions) publishHandler() string {
 	return publisher.Publish()
 }
 
-// func (a *Actions) subscribeHandler() string {
-//
-// }
+func (a *Actions) subscribeHandler() string {
+	subject := a.StringArray[1]
+
+	subscriber := &pubsub.AsyncSubscriber{
+		"",
+		subject,
+	}
+	return subscriber.ASub()
+}
