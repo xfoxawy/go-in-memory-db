@@ -274,7 +274,7 @@ func TakeAction(data *Actions) {
 
 	case "publish":
 		publish := data.publishHandler()
-		write(conn, publish)
+		write(conn, publish, false)
 
 	case "subscribe":
 		data.subscribeHandler()
