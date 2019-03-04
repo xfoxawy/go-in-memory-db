@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/go-in-memory-db/clients"
+	"github.com/go-in-memory-db/connection"
 	"github.com/go-in-memory-db/logging"
 	"github.com/tidwall/redcon"
 )
@@ -277,6 +278,7 @@ func TakeAction(data *Actions) {
 		write(conn, publish, false)
 
 	case "subscribe":
+		connection.ShareConnection(conn)
 		data.subscribeHandler()
 
 	case "bye":

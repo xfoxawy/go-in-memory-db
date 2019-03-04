@@ -19,7 +19,7 @@ func main() {
 		}
 	}()
 
-	go log.Printf("started server at %s", addr)
+	log.Printf("started server at %s", addr)
 	err := redcon.ListenAndServe(addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
 

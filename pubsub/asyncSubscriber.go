@@ -2,8 +2,7 @@ package pubsub
 
 // Import Go and NATS packages
 import (
-	"log"
-
+	"github.com/go-in-memory-db/connection"
 	"github.com/nats-io/go-nats"
 )
 
@@ -21,12 +20,12 @@ func (as *AsyncSubscriber) ASub() {
 	}
 
 	natsConnection, _ := nats.Connect(as.Url)
-	log.Println("Connected to " + as.Url)
+	c := connection.GetSharedConnection()
+	c.WriteString("Connected to " + as.Url)
+	c.WriteString("Subscribing to subject " + as.Subject)
 
-	log.Printf("Subscribing to subject " + as.Subject + "\n")
 	natsConnection.Subscribe(as.Subject, func(msg *nats.Msg) {
-		log.Printf("Received message '%s\n", string(msg.Data)+"'")
+		connection.ShareConnection(c)
+		c.WriteString("Received message \n" + string(msg.Data))
 	})
-
-	// Keep the connection alive
 }
