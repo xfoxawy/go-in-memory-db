@@ -5,12 +5,19 @@ import (
 
 	"github.com/go-in-memory-db/actions"
 	"github.com/go-in-memory-db/clients"
-	"github.com/redcon"
+	"github.com/go-in-memory-db/logging"
+	"github.com/tidwall/redcon"
 )
 
 var addr = ":6380"
 
 func main() {
+
+	defer func() {
+		if r := recover(); r != nil {
+			logging.LoggingLog("application", "file", r.(string))
+		}
+	}()
 
 	go log.Printf("started server at %s", addr)
 	err := redcon.ListenAndServe(addr,

@@ -25,11 +25,11 @@ func (a *Actions) lGetHandler() string {
 	if err != nil || v.Start == nil {
 		return "empty or not exit"
 	}
-	write(a.Client.Conn, v.Start.Value)
+	write(a.Client.Conn, v.Start.Value, false)
 	current := v.Start
 	for current.Next != nil {
 		current = current.Next
-		write(a.Client.Conn, current.Value)
+		write(a.Client.Conn, current.Value, false)
 	}
 	return ""
 }
