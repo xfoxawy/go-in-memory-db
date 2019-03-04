@@ -3,7 +3,6 @@ package pubsub
 // Import Go and NATS packages
 import (
 	"log"
-	"runtime"
 
 	"github.com/nats-io/go-nats"
 )
@@ -30,5 +29,4 @@ func (as *AsyncSubscriber) ASub() {
 	})
 
 	// Keep the connection alive
-	runtime.Goexit()
 }
