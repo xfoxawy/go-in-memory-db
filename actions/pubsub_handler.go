@@ -11,20 +11,20 @@ func (a *Actions) publishHandler() string {
 
 	msg := strings.Join(a.StringArray[2:], "")
 
-	publisher := &pubsub.Publisher{
-		"",
-		subject,
-		msg,
+	pub := &pubsub.Publisher{
+		Url:     "",
+		Subject: subject,
+		Msg:     msg,
 	}
-	return publisher.Publish()
+	return pub.Publish()
 }
 
-func (a *Actions) subscribeHandler() string {
+func (a *Actions) subscribeHandler() {
 	subject := a.StringArray[1]
 
-	subscriber := &pubsub.AsyncSubscriber{
-		"",
-		subject,
+	sub := &pubsub.AsyncSubscriber{
+		Url:     "",
+		Subject: subject,
 	}
-	return subscriber.ASub()
+	sub.ASub()
 }

@@ -8,12 +8,14 @@ import (
 	"github.com/nats-io/go-nats"
 )
 
+// AsyncSubscriber struct
 type AsyncSubscriber struct {
 	Url     string
 	Subject string
 }
 
-func (as *AsyncSubscriber) ASub() string {
+// ASub function
+func (as *AsyncSubscriber) ASub() {
 
 	if as.Url == "" {
 		as.Url = DEFAULTURL
@@ -29,5 +31,4 @@ func (as *AsyncSubscriber) ASub() string {
 
 	// Keep the connection alive
 	runtime.Goexit()
-	return ""
 }

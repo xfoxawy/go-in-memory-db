@@ -8,15 +8,18 @@ import (
 )
 
 const (
+	// DEFAULTURL const
 	DEFAULTURL string = nats.DefaultURL
 )
 
+// Publisher struct
 type Publisher struct {
 	Url     string
 	Subject string
 	Msg     string
 }
 
+// Publish function
 func (p *Publisher) Publish() string {
 	if p.Url == "" {
 		p.Url = DEFAULTURL
