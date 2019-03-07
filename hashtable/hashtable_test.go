@@ -6,11 +6,8 @@ import (
 
 var hash *HashTable
 
-func init() {
-	hash = NewHashTable()
-}
-
 func TestGet(t *testing.T) {
+	hash := NewHashTable()
 	el := hash.Get("fakekey")
 
 	if el != nil {
@@ -30,7 +27,17 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestStringify(t *testing.T) {
+	hash := NewHashTable()
+	el := hash.Insert("keyx", 5657)
+
+	if el.Get("keyx").Stringify() != "5657" {
+		t.Error("Invalid return value")
+	}
+}
+
 func TestInsert(t *testing.T) {
+	hash := NewHashTable()
 	res1 := hash.Insert("key", "value")
 	if hash.Length() == 0 {
 		t.Errorf("expected length > 0")
@@ -42,6 +49,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
+	hash := NewHashTable()
 	hash.Insert("key", "value")
 	beforeRemove := hash.Length()
 	hash.Remove("key")
@@ -52,6 +60,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	hash := NewHashTable()
 	el := hash.Get("key")
 	if el != nil {
 		t.Error("Key has a value when its supposed to be nil")
@@ -69,6 +78,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestLength(t *testing.T) {
+	hash := NewHashTable()
 	hash.Insert("key", 5.43)
 
 	if hash.Length() != 1 {
@@ -89,6 +99,7 @@ func TestLength(t *testing.T) {
 }
 
 func TestExists(t *testing.T) {
+	hash := NewHashTable()
 	if hash.Exists("FakeKey") != false {
 		t.Error("Exists failed to locate a key")
 	}

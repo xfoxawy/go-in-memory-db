@@ -1,9 +1,12 @@
 package actions
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-in-memory-db/clients"
+	"github.com/go-in-memory-db/timeseries"
 	"github.com/tidwall/redcon"
 )
 
@@ -268,6 +271,38 @@ func TakeAction(data *Actions) {
 	case "show", "ls":
 		show := data.showHandler()
 		write(conn, show)
+
+	case "tick":
+		x := timeseries.NewTimeseries()
+		E := x.Ticker(x.Ticking)
+
+		for t := range E.C {
+			fmt.Printf("im working %v", t)
+		}
+
+	case "tock":
+		write(conn, "gonna tick")
+		key := data.StringArray[1]
+
+		ticker := time.NewTicker(500 * time.Millisecond)
+
+		go func() {
+
+			for t := range ticker.C {
+				_, err := data.Client.Dbpointer.Get(key)
+				if err == nil {
+					fmt.Printf("found %v \n", key)
+					data.Client.Dbpointer.Del(key)
+					fmt.Printf("%v is deleted at %v \n", key, t.String())
+				} else {
+					fmt.Printf("found no %v \n", key)
+				}
+				fmt.Printf("tick at %v \n", t.String())
+
+			}
+		}()
+
+		// defer ticker.Stop()
 
 	case "bye":
 		data.byeHandler()

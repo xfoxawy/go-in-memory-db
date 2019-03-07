@@ -1,6 +1,8 @@
 package timeseries
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-in-memory-db/hashtable"
@@ -30,20 +32,72 @@ func (s Snapshot) IsEmpty() bool {
 // Timeseries data set, consistes of a skiplist and a hastable
 // is only moving forward, past is immutable only inserting moving forward in time
 type Timeseries struct {
+	timemap  *skiplist.SkipList
 	table    map[int64]*hashtable.HashTable
 	skiplist *skiplist.SkipList
 	current  int64 // Last inserted timestamp
+	span     time.Duration
+	Ticking  time.Duration
 }
 
-// New Timeseries data structure
-func New() *Timeseries {
+// NewTimeseries data structure
+func NewTimeseries() *Timeseries {
 	return &Timeseries{
+		timemap: skiplist.NewCustomMap(func(l, r interface{}) bool {
+			return l.(int64) < r.(int64)
+		}),
 		table: make(map[int64]*hashtable.HashTable),
 		skiplist: skiplist.NewCustomMap(func(l, r interface{}) bool {
 			return l.(int64) < r.(int64)
 		}),
 		current: 0,
+		span:    time.Second,
+		Ticking: 500 * time.Millisecond,
 	}
+}
+
+func Ticker(t *Timeseries) chan bool {
+	done := make(chan bool, 1)
+	go func() {
+		ticker := time.NewTicker(t.Ticking)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				t.Clean()
+			case <-done:
+				fmt.Println("done")
+				return
+			}
+		}
+	}()
+	return done
+}
+
+func (t *Timeseries) Clean() {
+
+	now := time.Now()
+
+	tensecondsago := now.Add(-t.span)
+
+	x := t.timemap.Seek(tensecondsago.Unix())
+
+	if x != nil {
+		// for x.Next() {
+		// 	ts := x.Key().(int64)
+		// 	fmt.Printf("%v", ts)
+		// }
+		log.Printf("value %v", x.Value())
+		log.Printf("value %v", x.Previous())
+		// for x.Previous() {
+		// ts := x.Key().(int64)
+		// log.Printf("%v", ts)
+		// }
+	}
+
+	// range ??za
+	// fmt.Println(tensecondsago)
+
 }
 
 // Length of Timeseries
@@ -55,11 +109,12 @@ func (t *Timeseries) Length() int {
 // Insert is only forward in time
 func (t *Timeseries) BulkInsert(timestamp int64, kvs map[string]string) {
 	if timestamp > t.current {
+		t.timemap.Set(time.Now().Unix(), timestamp)
 		t.skiplist.Set(timestamp, time.Now().Unix())
-		t.table[timestamp] = hashtable.New()
+		t.table[timestamp] = hashtable.NewHashTable()
 		t.current = timestamp
 		for k, v := range kvs {
-			t.table[timestamp].Push(k, v)
+			t.table[timestamp].Insert(k, v)
 		}
 	}
 }
@@ -68,9 +123,14 @@ func (t *Timeseries) BulkInsert(timestamp int64, kvs map[string]string) {
 // Inserting is only moving forward in time
 func (t *Timeseries) Insert(timestamp int64, key, value string) {
 	if timestamp > t.current {
+		// insert in timemap for faster cleaning job
+		t.timemap.Set(time.Now().Unix(), timestamp)
+		// insert in skiplist (real values) for faster search job
 		t.skiplist.Set(timestamp, time.Now().Unix())
-		t.table[timestamp] = hashtable.New()
+		// create and save key-value in hashtable indexed by input timestamp
+		t.table[timestamp] = hashtable.NewHashTable()
 		t.table[timestamp].Insert(key, value)
+		// keep the last timestamp handy for quick comparsion , this timeseries is forward only
 		t.current = timestamp
 	}
 }
@@ -98,8 +158,8 @@ func (t *Timeseries) SeekTo(timestamp int64) *hashtable.HashTable {
 // Get return an extact timestamp and key from Hashtable associated with this timestamp
 func (t *Timeseries) Get(timestamp int64, key string) string {
 	if table, ok := t.table[timestamp]; ok {
-		if ok := table.Exist(key); ok {
-			return table.Get(key).(string)
+		if ok := table.Exists(key); ok {
+			return table.Get(key).Stringify()
 		}
 	}
 	return ""
@@ -168,7 +228,8 @@ func (t *Timeseries) Before(timestamp int64, span int) Snapshot {
 	bound := t.skiplist.Seek(timestamp)
 	snapshot := make(Snapshot)
 
-	defer bound.Close()
+	//@todo : running tests on it, it throws nil pointer exceptions
+	// defer bound.Close()
 
 	if bound != nil {
 		ts := bound.Key().(int64)
@@ -189,7 +250,8 @@ func (t *Timeseries) After(timestamp int64, span int) Snapshot {
 	bound := t.skiplist.Seek(timestamp)
 	snapshot := make(Snapshot)
 
-	defer bound.Close()
+	//@todo : running tests on it, it throws nil pointer exceptions
+	// defer bound.Close()
 
 	if bound != nil {
 		ts := bound.Key().(int64)
@@ -202,5 +264,6 @@ func (t *Timeseries) After(timestamp int64, span int) Snapshot {
 			snapshot = snapshot.Push(ts, table)
 		}
 	}
+
 	return snapshot
 }

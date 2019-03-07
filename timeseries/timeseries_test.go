@@ -2,17 +2,15 @@ package timeseries
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 )
 
 var ts *Timeseries
 
-func init() {
-	ts = New()
-}
-
 func TestInsert(t *testing.T) {
+	ts = NewTimeseries()
 	now := time.Now().Unix()
 	ts.Insert(now, "testKey", "testValue")
 
@@ -43,7 +41,7 @@ func TestInsert(t *testing.T) {
 			t.Fatal("Invalid first timestamp")
 		}
 
-		if table.Get("testKey") != "testValue" {
+		if table.Get("testKey").Stringify() != "testValue" {
 			t.Fatal("Invalid value in the hash")
 		}
 	}
@@ -59,7 +57,7 @@ func TestInsert(t *testing.T) {
 	halfwaykey := fmt.Sprintf("%s%d", "k", 50)
 	halfwayvalue := fmt.Sprintf("%d", 50)
 
-	if halfwayhash.Get(halfwaykey) != halfwayvalue {
+	if halfwayhash.Get(halfwaykey).Stringify() != halfwayvalue {
 		t.Fatal("Missing Key Value for halfway point")
 	}
 
@@ -86,7 +84,33 @@ func TestInsert(t *testing.T) {
 	}
 }
 
+func TestClean(t *testing.T) {
+	ts = NewTimeseries()
+	now := time.Now()
+	for i := 1; i < 1000; {
+		i++
+		k := fmt.Sprintf("%s%d", "k", i)
+		v := fmt.Sprintf("%d", i)
+		now = now.Add(time.Second)
+		ts.Insert(now.Unix(), k, v)
+	}
+
+	sp := ts.First()
+	xp := ts.Last()
+
+	for x := range sp {
+		log.Printf("%v", x)
+	}
+
+	for x := range xp {
+		log.Printf("%v", x)
+	}
+	ts.Clean()
+
+}
+
 func TestBulkInsert(t *testing.T) {
+	ts = NewTimeseries()
 	inputs := make(map[string]string)
 	now := time.Now().Unix()
 
@@ -102,12 +126,13 @@ func TestBulkInsert(t *testing.T) {
 	hash := ts.Retrieve(now)
 	v := hash.Get("k23")
 	if v == nil {
-		t.Fatal("Non value found")
+		t.Fatal("No value found")
 	}
 
 }
 
 func TestAfter(t *testing.T) {
+	ts = NewTimeseries()
 	now := time.Now().Unix()
 
 	beforepoint := now - int64(5)
@@ -169,6 +194,7 @@ func TestAfter(t *testing.T) {
 }
 
 func TestBefore(t *testing.T) {
+	ts := NewTimeseries()
 	now := time.Now().Unix()
 
 	beforepoint := now - int64(5)
@@ -213,6 +239,7 @@ func TestBefore(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
+	ts := NewTimeseries()
 	now := time.Now().Unix()
 
 	for i := 1; i < 101; {
@@ -254,6 +281,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestSeekTo(t *testing.T) {
+	ts := NewTimeseries()
 	now := time.Now().Unix()
 
 	for i := 1; i < 101; {

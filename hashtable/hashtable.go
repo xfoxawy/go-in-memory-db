@@ -1,5 +1,7 @@
 package hashtable
 
+import "fmt"
+
 // Element single for Hashtable
 type Element struct {
 	value interface{}
@@ -8,6 +10,14 @@ type Element struct {
 // Value of Single Element
 func (e *Element) Value() interface{} {
 	return e.value
+}
+
+// Stringify the value
+func (e *Element) Stringify() string {
+	if str, ok := e.value.(string); ok {
+		return str
+	}
+	return fmt.Sprintf("%v", e.value)
 }
 
 // HashTable struct
