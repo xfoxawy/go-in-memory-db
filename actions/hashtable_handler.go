@@ -9,15 +9,14 @@ func (a *Actions) hSetHandler() string {
 func (a *Actions) hGetHandler() string {
 	k := a.StringArray[1]
 	mapKey := a.StringArray[2]
-	v, err := a.Client.Dbpointer.GetHashTable(k)
+	hash, err := a.Client.Dbpointer.GetHashTable(k)
 
 	if err != nil {
 		return "Hash table Does not Exist"
 	}
-	if value, ok := v.Values[mapKey]; ok {
-		return value
-	}
-	return "This Key Does not Exist"
+
+	return hash.Get(mapKey).Stringify()
+
 }
 
 /**
@@ -33,7 +32,7 @@ func (a *Actions) hGetAllHandler() string {
 	}
 
 	for k, v := range v.Values {
-		write(a.Client.Conn, k+" "+v)
+		write(a.Client.Conn, k+" "+v.Stringify())
 	}
 	return ""
 }
@@ -42,7 +41,7 @@ func (a *Actions) hDelHandler() string {
 	k := a.StringArray[1]
 	if _, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
 		a.Client.Dbpointer.DelHashTable(k)
-		return k + " " + "has deleted"
+		return k + " " + "is deleted"
 	}
 	return "Hash table Does not Exist"
 }
@@ -50,14 +49,14 @@ func (a *Actions) hDelHandler() string {
 func (a *Actions) hPushHandler() string {
 	k := a.StringArray[1]
 	mapKey := a.StringArray[2]
-
 	hash, err := a.Client.Dbpointer.GetHashTable(k)
+
 	if err != nil {
 		return "Hash table Does not Exist"
 	}
 
 	value := a.StringArray[3]
-	hash.Values = hash.Push(mapKey, value)
+	hash.Insert(mapKey, value)
 	return "OK"
 }
 
@@ -67,7 +66,7 @@ func (a *Actions) hRemoveHandler() string {
 
 	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
 
-		hash.Values = hash.Remove(mapKey)
+		hash.Remove(mapKey)
 		return "OK"
 	}
 	return "Hash table Does not Exist"
