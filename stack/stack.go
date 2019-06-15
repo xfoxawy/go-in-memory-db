@@ -4,7 +4,7 @@ import "github.com/go-in-memory-db/linkedlist"
 
 // Stack struct
 type Stack struct {
-	stack *linkedlist.LinkedList
+	Stack *linkedlist.LinkedList
 }
 
 // NewStack generator
@@ -14,7 +14,7 @@ func NewStack() *Stack {
 
 // Push element ro stack
 func (s *Stack) Push(e string) {
-	s.stack.Shift(e)
+	s.Stack.Shift(e)
 	return
 }
 
@@ -23,7 +23,7 @@ func (s *Stack) Pop() string {
 	if s.IsEmpty() {
 		return ""
 	}
-	top, _ := s.stack.Unshift()
+	top, _ := s.Stack.Unshift()
 	if top.Value == "" {
 		return ""
 	}
@@ -32,7 +32,7 @@ func (s *Stack) Pop() string {
 
 // Size stack size
 func (s *Stack) Size() int {
-	return s.stack.Length
+	return s.Stack.Length
 }
 
 // IsEmpty check

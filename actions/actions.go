@@ -24,6 +24,54 @@ func TakeAction(ch chan *Actions) {
 		switch strings.ToLower(command[0]) {
 		case "help":
 			write(conn, data.helpHandler())
+		case "sset":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			data.sSetHanlder()
+			write(conn, "OK")
+
+		case "sget":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			sget := data.sGetHandler()
+			write(conn, sget)
+
+		case "sdel":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			sdel := data.sDelHandler()
+			write(conn, sdel)
+
+		case "ssize":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			ssize := data.sSizeHandler()
+			write(conn, ssize)
+
+		case "spop":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			spop := data.sPopHandler()
+			write(conn, spop)
+
+		case "spush":
+			if len(command) < 2 {
+				write(conn, "UNEXPECTED KEY")
+				continue
+			}
+			spush := data.sPushHandler()
+			write(conn, spush)
+
 		case "qset":
 			if len(command) < 2 {
 				write(conn, "UNEXPECTED KEY")
