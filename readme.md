@@ -27,15 +27,21 @@ git clone
 And 
 
 ```
-go run in-memory-db.go --port=8080 (default is 8080)
+go run go-in-memory-db.go --port=8080 (default is 8080)
 ```
 OR
 ```
-go build in-memory-db.go
+go build go-in-memory-db.go
 ```
 then 
 ```
-./in-memory-db --port=8080 (default is 8080)
+./go-in-memory-db --port=8080 (default is 8080)
+```
+
+to run tests
+
+```
+go test -cover ./...
 ```
 
 
@@ -55,6 +61,7 @@ to GET data
 ```
 GET key
 ```
+
 
 to check if key isset
 ```
@@ -113,7 +120,7 @@ to get value using (index) int
 LSEEK key index
 ```
 to set hashtable
-```
+ ```
 HSET key 
 OR 
 HSET key value1 value2 etc...
@@ -140,16 +147,6 @@ HRM key value1 value2 etc...
 OR
 HREMOVE key value1 value2 etc...
 ```
-
-to remove element by index in hashtable
-```
-HUNLINK key index
-```
-to get element from hashtable by index
-```
-HSEEK key index1 index2 etc ...
-```
-
 to dump data to screen
 ```
 DUMP
