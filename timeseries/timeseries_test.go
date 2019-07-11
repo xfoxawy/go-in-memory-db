@@ -43,7 +43,7 @@ func TestInsert(t *testing.T) {
 			t.Fatal("Invalid first timestamp")
 		}
 
-		if table.Get("testKey") != "testValue" {
+		if table.Get("testKey").Value().(string) != "testValue" {
 			t.Fatal("Invalid value in the hash")
 		}
 	}
@@ -59,7 +59,7 @@ func TestInsert(t *testing.T) {
 	halfwaykey := fmt.Sprintf("%s%d", "k", 50)
 	halfwayvalue := fmt.Sprintf("%d", 50)
 
-	if halfwayhash.Get(halfwaykey) != halfwayvalue {
+	if halfwayhash.Get(halfwaykey).Value().(string) != halfwayvalue {
 		t.Fatal("Missing Key Value for halfway point")
 	}
 
