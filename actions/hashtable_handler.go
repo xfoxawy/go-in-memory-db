@@ -97,7 +97,7 @@ func (a *Actions) hSeekHandler() string {
 
 	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
 
-		return hash.Seek(seekingValue).Value
+		return hash.Get(seekingValue).Value().(string)
 	}
 	return "Hash table Does not Exist"
 }

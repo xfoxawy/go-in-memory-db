@@ -80,3 +80,13 @@ func (h *HashTable) Length() int {
 func (h *HashTable) Size() int {
 	return len(h.Values)
 }
+
+// Find value in HashTable
+func (h *HashTable) Find(value interface{}) string {
+	for i, v := range h.Values {
+		if value == v {
+			return i
+		}
+	}
+	return ""
+}
