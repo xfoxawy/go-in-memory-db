@@ -56,10 +56,10 @@ func (t *Timeseries) Length() int {
 func (t *Timeseries) BulkInsert(timestamp int64, kvs map[string]string) {
 	if timestamp > t.current {
 		t.skiplist.Set(timestamp, time.Now().Unix())
-		t.table[timestamp] = hashtable.New()
+		t.table[timestamp] = hashtable.NewHashTable()
 		t.current = timestamp
 		for k, v := range kvs {
-			t.table[timestamp].Push(k, v)
+			t.table[timestamp].Insert(k, v)
 		}
 	}
 }
@@ -69,7 +69,7 @@ func (t *Timeseries) BulkInsert(timestamp int64, kvs map[string]string) {
 func (t *Timeseries) Insert(timestamp int64, key, value string) {
 	if timestamp > t.current {
 		t.skiplist.Set(timestamp, time.Now().Unix())
-		t.table[timestamp] = hashtable.New()
+		t.table[timestamp] = hashtable.NewHashTable()
 		t.table[timestamp].Insert(key, value)
 		t.current = timestamp
 	}
@@ -98,8 +98,8 @@ func (t *Timeseries) SeekTo(timestamp int64) *hashtable.HashTable {
 // Get return an extact timestamp and key from Hashtable associated with this timestamp
 func (t *Timeseries) Get(timestamp int64, key string) string {
 	if table, ok := t.table[timestamp]; ok {
-		if ok := table.Exist(key); ok {
-			return table.Get(key).(string)
+		if ok := table.Exists(key); ok {
+			return table.Get(key).Value().(string)
 		}
 	}
 	return ""

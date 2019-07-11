@@ -75,3 +75,8 @@ func (h *HashTable) Remove(key string) *HashTable {
 func (h *HashTable) Length() int {
 	return len(h.Values)
 }
+
+// Size of HashTable
+func (h *HashTable) Size() int {
+	return len(h.Values)
+}

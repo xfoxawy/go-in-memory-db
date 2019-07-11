@@ -4,6 +4,7 @@ import (
 	"github.com/go-in-memory-db/hashtable"
 	"github.com/go-in-memory-db/linkedlist"
 	"github.com/go-in-memory-db/queue"
+	"github.com/go-in-memory-db/stack"
 )
 
 // DatabaseInterface Inteface
@@ -20,6 +21,9 @@ type DatabaseInterface interface {
 	GetQueue(k string) (*queue.Queue, error)
 	CreateQueue(k string) (*queue.Queue, error)
 	DelQueue(k string)
+	GetStack(k string) (*stack.Stack, error)
+	CreateStack(k string) (*stack.Stack, error)
+	DelStack(k string)
 	GetHashTable(k string) (*hashtable.HashTable, error)
 	CreateHashTable(k string) (*hashtable.HashTable, error)
 	DelHashTable(k string)
@@ -32,6 +36,7 @@ type Database struct {
 	Public        bool
 	data          map[string]string
 	dataList      map[string]*linkedlist.LinkedList
+	stack         map[string]*stack.Stack
 	queue         map[string]*queue.Queue
 	dataHashTable map[string]*hashtable.HashTable
 }
@@ -43,6 +48,7 @@ func CreateMasterDB() *Database {
 		true,
 		make(map[string]string),
 		make(map[string]*linkedlist.LinkedList),
+		make(map[string]*stack.Stack),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
 	}
@@ -57,6 +63,7 @@ func GetActiveDatabase(key string) *Database {
 		make(map[string]string),
 
 		make(map[string]*linkedlist.LinkedList),
+		make(map[string]*stack.Stack),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
 	}

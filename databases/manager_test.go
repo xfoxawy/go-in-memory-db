@@ -7,6 +7,7 @@ import (
 	"github.com/go-in-memory-db/hashtable"
 	"github.com/go-in-memory-db/linkedlist"
 	"github.com/go-in-memory-db/queue"
+	"github.com/go-in-memory-db/stack"
 )
 
 var db *Database
@@ -19,6 +20,7 @@ func init() {
 		true,
 		make(map[string]string),
 		make(map[string]*linkedlist.LinkedList),
+		make(map[string]*stack.Stack),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
 	}

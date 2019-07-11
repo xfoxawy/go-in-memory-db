@@ -121,6 +121,14 @@ func TakeAction(data *Actions) {
 		hpush := data.hPushHandler()
 		write(conn, hpush)
 
+	case "hupdate":
+		if len(command) < 4 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		hupdate := data.hUpdateHandler()
+		write(conn, hupdate)
+
 	case "hrm", "hremove":
 		if len(command) < 3 {
 			write(conn, "UNEXPECTED KEY")
@@ -128,6 +136,30 @@ func TakeAction(data *Actions) {
 		}
 		hrm := data.hRemoveHandler()
 		write(conn, hrm)
+
+	case "hseek":
+		if len(command) < 3 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		hseek := data.hSeekHandler()
+		write(conn, hseek)
+
+	case "hfind":
+		if len(command) < 3 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		hfind := data.hFindHandler()
+		write(conn, hfind)
+
+	case "hsize":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		hsize := data.hSizeHandler()
+		write(conn, hsize)
 
 	case "lset":
 		if len(command) < 2 {

@@ -1,5 +1,7 @@
 package actions
 
+import "strconv"
+
 func (a *Actions) hSetHandler() string {
 	k := a.StringArray[1]
 	a.Client.Dbpointer.CreateHashTable(k)
@@ -61,6 +63,20 @@ func (a *Actions) hPushHandler() string {
 	return "OK"
 }
 
+func (a *Actions) hUpdateHandler() string {
+	k := a.StringArray[1]
+	mapKey := a.StringArray[2]
+
+	hash, err := a.Client.Dbpointer.GetHashTable(k)
+	if err != nil {
+		return "Hash table Does not Exist"
+	}
+
+	value := a.StringArray[3]
+	hash.Values = hash.Update(mapKey, value)
+	return "OK"
+}
+
 func (a *Actions) hRemoveHandler() string {
 	k := a.StringArray[1]
 	mapKey := a.StringArray[2]
@@ -69,6 +85,36 @@ func (a *Actions) hRemoveHandler() string {
 
 		hash.Values = hash.Remove(mapKey)
 		return "OK"
+	}
+	return "Hash table Does not Exist"
+}
+
+func (a *Actions) hSeekHandler() string {
+	k := a.StringArray[1]
+	seekingValue := a.StringArray[2]
+
+	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
+
+		return hash.Seek(seekingValue)
+	}
+	return "Hash table Does not Exist"
+}
+
+func (a *Actions) hSizeHandler() string {
+	k := a.StringArray[1]
+
+	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
+		return strconv.Itoa(hash.Size())
+	}
+	return "Hash table Does not Exist"
+}
+
+func (a *Actions) hFindHandler() string {
+	k := a.StringArray[1]
+	value := a.StringArray[2]
+
+	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
+		return hash.Find(value)
 	}
 	return "Hash table Does not Exist"
 }
