@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/go-in-memory-db/clients"
-	"github.com/redcon"
+	"github.com/tidwall/redcon"
 )
 
 type Actions struct {

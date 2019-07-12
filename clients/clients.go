@@ -2,7 +2,7 @@ package clients
 
 import (
 	"github.com/go-in-memory-db/databases"
-	"github.com/redcon"
+	"github.com/tidwall/redcon"
 )
 
 type Client struct {

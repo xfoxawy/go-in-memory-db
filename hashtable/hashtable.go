@@ -1,68 +1,92 @@
 package hashtable
 
+// Element single for Hashtable
+type Element struct {
+	value interface{}
+}
+
+// Value of Single Element
+func (e *Element) Value() interface{} {
+	return e.value
+}
+
 // HashTable struct
 type HashTable struct {
-	Values map[string]string
+	Values map[string]*Element
 }
 
 // NewHashTable generator
 func NewHashTable() *HashTable {
-	return &HashTable{Values: make(map[string]string)}
+	return &HashTable{
+		Values: make(map[string]*Element),
+	}
 }
 
-// Push value in map
+// Exists check the exitance of a Key
+func (h *HashTable) Exists(k string) bool {
+	if _, ok := h.Values[k]; ok {
+		return ok
+	}
+	return false
+}
+
+// Get retreives an Element from HashTable
+func (h *HashTable) Get(k string) *Element {
+	if el, ok := h.Values[k]; ok {
+		return el
+	}
+	return nil
+}
+
+// Insert an Element HashTable, Does not override
 // [index1:value1 ,index2: value2]
 //  push value3
 // [index1:value1 ,index2: value2, index3: value3]
-func (h *HashTable) Push(k string, v string) map[string]string {
+func (h *HashTable) Insert(k string, v interface{}) *HashTable {
 	if _, ok := h.Values[k]; ok {
-		return h.Values
+		return h
 	}
-	h.Values[k] = v
-	return h.Values
+	h.Values[k] = &Element{
+		value: v,
+	}
+	return h
 }
 
-// Remove value from slice using key
-func (h *HashTable) Remove(key string) map[string]string {
+// Update inserts an Element, overrides if Key exists
+func (h *HashTable) Update(k string, v interface{}) *HashTable {
+	h.Values[k] = &Element{
+		value: v,
+	}
+	return h
+}
+
+// Remove value from HashTable
+//[value1 , value2 , ...]
+//delete value1
+// [value2 , ...]
+func (h *HashTable) Remove(key string) *HashTable {
 	if _, ok := h.Values[key]; ok {
 		delete(h.Values, key)
 	}
-	return h.Values
+	return h
 }
 
-/**
-* Seek element value using key
-* [value1 , value2 , ...]
-* seek 0
-* value1
- */
-func (h *HashTable) Seek(key string) string {
-	if value, ok := h.Values[key]; ok {
-		return value
-	}
-	return ""
-}
-
-// Update value in HashTable
-func (h *HashTable) Update(key, newVal string) map[string]string {
-	if _, ok := h.Values[key]; ok {
-		h.Values[key] = newVal
-	}
-	return h.Values
-}
-
-// Find value in HashTable
-func (h *HashTable) Find(value string) string {
-	for i, v := range h.Values {
-		if value == v {
-			return i
-			break
-		}
-	}
-	return ""
+// Length of Values in HashTable
+func (h *HashTable) Length() int {
+	return len(h.Values)
 }
 
 // Size of HashTable
 func (h *HashTable) Size() int {
 	return len(h.Values)
+}
+
+// Find value in HashTable
+func (h *HashTable) Find(value interface{}) string {
+	for i, v := range h.Values {
+		if value == v {
+			return i
+		}
+	}
+	return ""
 }

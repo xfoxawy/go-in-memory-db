@@ -1,6 +1,8 @@
 package actions
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func (a *Actions) hSetHandler() string {
 	k := a.StringArray[1]
@@ -17,7 +19,7 @@ func (a *Actions) hGetHandler() string {
 		return "Hash table Does not Exist"
 	}
 	if value, ok := v.Values[mapKey]; ok {
-		return value
+		return value.Value().(string)
 	}
 	return "This Key Does not Exist"
 }
@@ -35,7 +37,7 @@ func (a *Actions) hGetAllHandler() string {
 	}
 
 	for k, v := range v.Values {
-		write(a.Client.Conn, k+" "+v)
+		write(a.Client.Conn, k+" "+v.Value().(string))
 	}
 	return ""
 }
@@ -59,7 +61,7 @@ func (a *Actions) hPushHandler() string {
 	}
 
 	value := a.StringArray[3]
-	hash.Values = hash.Push(mapKey, value)
+	hash.Values = hash.Insert(mapKey, value).Values
 	return "OK"
 }
 
@@ -73,7 +75,7 @@ func (a *Actions) hUpdateHandler() string {
 	}
 
 	value := a.StringArray[3]
-	hash.Values = hash.Update(mapKey, value)
+	hash.Values = hash.Update(mapKey, value).Values
 	return "OK"
 }
 
@@ -83,7 +85,7 @@ func (a *Actions) hRemoveHandler() string {
 
 	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
 
-		hash.Values = hash.Remove(mapKey)
+		hash.Values = hash.Remove(mapKey).Values
 		return "OK"
 	}
 	return "Hash table Does not Exist"
@@ -95,7 +97,7 @@ func (a *Actions) hSeekHandler() string {
 
 	if hash, err := a.Client.Dbpointer.GetHashTable(k); err == nil {
 
-		return hash.Seek(seekingValue)
+		return hash.Get(seekingValue).Value().(string)
 	}
 	return "Hash table Does not Exist"
 }
