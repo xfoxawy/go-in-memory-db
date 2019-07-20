@@ -11,14 +11,20 @@ import (
 
 	"github.com/go-in-memory-db/actions"
 	"github.com/go-in-memory-db/clients"
+	"github.com/go-in-memory-db/logging"
 )
 
 const port string = "8080"
 
 func main() {
 
-	portFlag := flag.String("port", port, "connection port")
+	defer func() {
+		if r := recover(); r != nil {
+			logging.LoggingLog("application", "file", r.(string))
+		}
+	}()
 
+	portFlag := flag.String("port", port, "connection port")
 	flag.Parse()
 
 	port := fmt.Sprintf(":%s", *portFlag)

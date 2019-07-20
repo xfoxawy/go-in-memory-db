@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-in-memory-db/clients"
+	"github.com/go-in-memory-db/logging"
 )
 
 type Actions struct {
@@ -327,4 +328,5 @@ func TakeAction(ch chan *Actions) {
 
 func write(w io.Writer, s string) {
 	io.WriteString(w, s+"\n")
+	logging.LoggingLog("user", "file", s)
 }
