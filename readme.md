@@ -49,8 +49,6 @@ then through Telnet or any TCP connection
 ```
 telnet 127.0.0.1 8080
 ```
-
-
 ### Usage
 to SET data 
 ```
@@ -189,6 +187,10 @@ and Help
 ```
 HELP
 ```
+
+## Contributing
+This is ongoing project, and we still need alot of work, here a list of tasks , feel free to check it out https://trello.com/b/1OMBxRzN/thoth
+
 
 ## License
 
