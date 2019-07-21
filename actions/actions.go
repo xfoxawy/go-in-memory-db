@@ -17,17 +17,17 @@ func TakeAction(data *Actions) {
 	conn := data.Client.Conn
 
 	if len(command) < 1 {
-		write(conn, "please type somthing :D")
+		write(conn, "PLEASE TYPE SOMTHING")
 		return
 	}
 
 	ad := NewDecisionManager(data)
 	checkCommandExist := ad.CheckCommandAvailablity(strings.ToLower(command[0]))
 	if !checkCommandExist {
-		write(conn, "please use help to know our commands")
+		write(conn, "UNKNOW COMMAND, USE HELP")
 		return
 	}
-	runner := ad.RunCommand(len(command))
+	runner := ad.RunCommand(command)
 	if runner == "" {
 		write(conn, "OK")
 	} else {

@@ -3,22 +3,22 @@ package actions
 import "strconv"
 
 /*
-type allDecision
+type commandsMapper
 Schema {
 	"command name" : {
 		validation length : execution function
 	}
 }
 */
-type allDecision map[string]map[int]func() string
+type commandsMapper map[string]map[int]func() string
 
 /*
 DecisionManager struct
-allDecision contain all commands with it's own emplementation function
+commandsMapper contain all commands with it's own emplementation function
 commandName will be setted after check if exist
 */
 type DecisionManager struct {
-	allDecision
+	commandsMapper
 	commandName string
 }
 
@@ -35,7 +35,7 @@ CheckCommandAvailablity function
 if command exist it will override on commandName in struct
 */
 func (ad *DecisionManager) CheckCommandAvailablity(commandName string) bool {
-	_, ok := ad.allDecision[commandName]
+	_, ok := ad.commandsMapper[commandName]
 	if ok {
 		ad.commandName = commandName
 	}
@@ -43,9 +43,10 @@ func (ad *DecisionManager) CheckCommandAvailablity(commandName string) bool {
 }
 
 // RunCommand function
-func (ad *DecisionManager) RunCommand(expectedLength int) string {
+func (ad *DecisionManager) RunCommand(commandArray []string) string {
+	expectedLength := len(commandArray)
 	var message string
-	for k, v := range ad.allDecision[ad.commandName] {
+	for k, v := range ad.commandsMapper[ad.commandName] {
 		if expectedLength < k {
 			message += "This command takes " + strconv.FormatInt(int64(k-1), 10) + " params Got " + strconv.FormatInt(int64(expectedLength-1), 10)
 		} else {
@@ -60,7 +61,7 @@ func (ad *DecisionManager) RunCommand(expectedLength int) string {
 this function will contain all of our commands
 with validation number and exection function
 */
-func generateAllDecisions(data *Actions) allDecision {
+func generateAllDecisions(data *Actions) commandsMapper {
 	decisions := map[string]map[int]func() string{
 		"help": {0: func() string {
 			return data.helpHandler()
