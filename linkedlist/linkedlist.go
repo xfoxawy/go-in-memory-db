@@ -138,6 +138,9 @@ func (l *LinkedList) Unlink(step int) error {
 	if l.Length == 0 || l.Length < step {
 		return errors.New("LinkedList is empty OR Step Not Exist")
 	}
+	if step == 0 {
+		return errors.New("Step Must be more than 0")
+	}
 	if step == 1 {
 		l.Unshift()
 		return nil
@@ -171,6 +174,9 @@ func (l *LinkedList) Unlink(step int) error {
 func (l *LinkedList) Seek(step int) (string, error) {
 	if l.Length == 0 || l.Length < step {
 		return "", errors.New("LinkedList is empty OR Step Not Exist")
+	}
+	if step == 0 {
+		return "", errors.New("Step Must be more than 0")
 	}
 	if step == 1 {
 		return l.Start.Value, nil
