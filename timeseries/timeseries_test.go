@@ -7,13 +7,12 @@ import (
 )
 
 var ts *Timeseries
-
-func init() {
-	ts = New()
-}
+var (
+	now = time.Now().Unix()
+)
 
 func TestInsert(t *testing.T) {
-	now := time.Now().Unix()
+	ts = New()
 	ts.Insert(now, "testKey", "testValue")
 
 	if ts.Length() != 1 {
@@ -87,8 +86,8 @@ func TestInsert(t *testing.T) {
 }
 
 func TestBulkInsert(t *testing.T) {
+	ts = New()
 	inputs := make(map[string]string)
-	now := time.Now().Unix()
 
 	for i := 1; i < 100; {
 		i++
@@ -108,7 +107,7 @@ func TestBulkInsert(t *testing.T) {
 }
 
 func TestAfter(t *testing.T) {
-	now := time.Now().Unix()
+	ts = New()
 
 	beforepoint := now - int64(5)
 	snapshot := ts.After(beforepoint, 100)
@@ -169,8 +168,7 @@ func TestAfter(t *testing.T) {
 }
 
 func TestBefore(t *testing.T) {
-	now := time.Now().Unix()
-
+	ts = New()
 	beforepoint := now - int64(5)
 	snapshot := ts.Before(beforepoint, 100)
 
@@ -213,8 +211,7 @@ func TestBefore(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	now := time.Now().Unix()
-
+	ts = New()
 	for i := 1; i < 101; {
 		i++
 		k := fmt.Sprintf("%s%d", "k", i)
@@ -254,7 +251,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestSeekTo(t *testing.T) {
-	now := time.Now().Unix()
+	ts = New()
 
 	for i := 1; i < 101; {
 		i++

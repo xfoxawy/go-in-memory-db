@@ -1,11 +1,13 @@
 package main
 
 import (
+	"github.com/alash3al/go-color"
+
 	"log"
 
-	"github.com/go-in-memory-db/actions"
-	"github.com/go-in-memory-db/clients"
 	"github.com/tidwall/redcon"
+	"github.com/xfoxawy/go-in-memory-db/actions"
+	"github.com/xfoxawy/go-in-memory-db/clients"
 )
 
 var addr = ":6380"
@@ -13,7 +15,9 @@ var addr = ":6380"
 func main() {
 
 	go log.Printf("started server at %s", addr)
-	err := redcon.ListenAndServe(addr,
+	err := make(chan error)
+
+	err <- redcon.ListenAndServe(addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
 
 			var stringCommands []string
@@ -24,7 +28,7 @@ func main() {
 
 			client := clients.ResolveClinet(conn)
 
-			action := handle(client, stringCommands)
+			action := &actions.Actions{stringCommands, client}
 			actions.TakeAction(action)
 		},
 		func(conn redcon.Conn) bool {
@@ -37,11 +41,7 @@ func main() {
 			// log.Printf("closed: %s, err: %v", conn.RemoteAddr(), err)
 		},
 	)
-	if err != nil {
-		log.Fatal(err)
+	if err := <-err; err != nil {
+		color.Red(err.Error())
 	}
-}
-
-func handle(c *clients.Client, fs []string) *actions.Actions {
-	return &actions.Actions{fs, c}
 }

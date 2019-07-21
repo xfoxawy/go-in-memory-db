@@ -3,7 +3,7 @@ package databases
 import (
 	"errors"
 
-	"github.com/go-in-memory-db/hashtable"
+	"github.com/xfoxawy/go-in-memory-db/hashtable"
 )
 
 // GetHashTable Function
@@ -12,14 +12,14 @@ func (db *Database) GetHashTable(k string) (*hashtable.HashTable, error) {
 		return db.dataHashTable[k], nil
 	}
 
-	return nil, errors.New("not found")
+	return nil, errors.New("Hashtable Does not Exist")
 
 }
 
 // CreateHashTable Function
 func (db *Database) CreateHashTable(k string) (*hashtable.HashTable, error) {
 	if v, ok := db.dataHashTable[k]; ok {
-		return v, errors.New("Hash Table Exists")
+		return v, errors.New("HashTable Exists")
 	}
 	db.dataHashTable[k] = hashtable.NewHashTable()
 	return db.dataHashTable[k], nil

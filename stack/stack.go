@@ -1,6 +1,6 @@
 package stack
 
-import "github.com/go-in-memory-db/linkedlist"
+import "github.com/xfoxawy/go-in-memory-db/linkedlist"
 
 // Stack struct
 type Stack struct {

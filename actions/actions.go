@@ -3,8 +3,8 @@ package actions
 import (
 	"strings"
 
-	"github.com/go-in-memory-db/clients"
 	"github.com/tidwall/redcon"
+	"github.com/xfoxawy/go-in-memory-db/clients"
 )
 
 type Actions struct {
@@ -25,21 +25,67 @@ func TakeAction(data *Actions) {
 
 	case "help":
 		write(conn, data.helpHandler())
-	case "qset":
+	case "sset":
 		if len(command) < 2 {
 			write(conn, "UNEXPECTED KEY")
 			return
 		}
-		data.qSetHanlder()
+		data.sSetHanlder()
 		write(conn, "OK")
+
+	case "sget":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		sget := data.sGetHandler()
+		write(conn, sget)
+
+	case "sdel":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		sdel := data.sDelHandler()
+		write(conn, sdel)
+
+	case "ssize":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		ssize := data.sSizeHandler()
+		write(conn, ssize)
+
+	case "spop":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		spop := data.sPopHandler()
+		write(conn, spop)
+
+	case "spush":
+		if len(command) < 2 {
+			write(conn, "UNEXPECTED KEY")
+			return
+		}
+		spush := data.sPushHandler()
+		write(conn, spush)
+
+	case "qset":
+		if len(command) < 2 {
+			conn.WriteString("UNEXPECTED KEY")
+			return
+		}
+		conn.WriteString(data.qSetHanlder())
 
 	case "qget":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		qget := data.qGetHandler()
-		write(conn, qget)
+		conn.WriteString(data.qGetHandler())
 
 	case "qdel":
 		if len(command) < 2 {
@@ -59,11 +105,11 @@ func TakeAction(data *Actions) {
 
 	case "qfront":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		qfront := data.qFrontHandler()
-		write(conn, qfront)
+
+		conn.WriteString(data.qFrontHandler())
 
 	case "qdeq":
 		if len(command) < 2 {
@@ -83,83 +129,60 @@ func TakeAction(data *Actions) {
 
 	case "hset":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hset := data.hSetHandler()
-		write(conn, hset)
+
+		conn.WriteString(data.hSetHandler())
 
 	case "hget":
 		if len(command) < 3 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hget := data.hGetHandler()
-		write(conn, hget)
+		conn.WriteString(data.hGetHandler())
 
 	case "hgetall":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hgetall := data.hGetAllHandler()
-		write(conn, hgetall)
+		conn.WriteString(data.hGetAllHandler())
 
 	case "hdel":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hdel := data.hDelHandler()
-		write(conn, hdel)
+		conn.WriteString(data.hDelHandler())
 
 	case "hpush":
 		if len(command) < 4 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hpush := data.hPushHandler()
-		write(conn, hpush)
+		conn.WriteString(data.hPushHandler())
 
 	case "hupdate":
 		if len(command) < 4 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hupdate := data.hUpdateHandler()
-		write(conn, hupdate)
+		conn.WriteString(data.hUpdateHandler())
 
 	case "hrm", "hremove":
 		if len(command) < 3 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hrm := data.hRemoveHandler()
-		write(conn, hrm)
-
-	case "hseek":
-		if len(command) < 3 {
-			write(conn, "UNEXPECTED KEY")
-			return
-		}
-		hseek := data.hSeekHandler()
-		write(conn, hseek)
-
-	case "hfind":
-		if len(command) < 3 {
-			write(conn, "UNEXPECTED KEY")
-			return
-		}
-		hfind := data.hFindHandler()
-		write(conn, hfind)
+		conn.WriteString(data.hRemoveHandler())
 
 	case "hsize":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		hsize := data.hSizeHandler()
-		write(conn, hsize)
+		conn.WriteString(data.hSizeHandler())
 
 	case "lset":
 		if len(command) < 2 {
@@ -171,11 +194,11 @@ func TakeAction(data *Actions) {
 
 	case "lget":
 		if len(command) < 2 {
-			write(conn, "UNEXPECTED KEY")
+			conn.WriteString("UNEXPECTED KEY")
 			return
 		}
-		lget := data.lGetHandler()
-		write(conn, lget)
+
+		conn.WriteString(data.lGetHandler())
 
 	case "ldel":
 		if len(command) < 2 {
@@ -286,8 +309,8 @@ func TakeAction(data *Actions) {
 		write(conn, clear)
 
 	case "which":
-		witch := data.witchHandler()
-		write(conn, witch)
+		which := data.whichHandler()
+		write(conn, which)
 
 	case "use":
 		if len(command) < 2 {

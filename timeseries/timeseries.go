@@ -3,8 +3,8 @@ package timeseries
 import (
 	"time"
 
-	"github.com/go-in-memory-db/hashtable"
 	"github.com/ryszard/goskiplist/skiplist"
+	"github.com/xfoxawy/go-in-memory-db/hashtable"
 )
 
 // Snapshot is a copied slice from the timeseries, Holding values as a return from queries
@@ -168,8 +168,6 @@ func (t *Timeseries) Before(timestamp int64, span int) Snapshot {
 	bound := t.skiplist.Seek(timestamp)
 	snapshot := make(Snapshot)
 
-	defer bound.Close()
-
 	if bound != nil {
 		ts := bound.Key().(int64)
 		table := t.table[ts]
@@ -180,6 +178,8 @@ func (t *Timeseries) Before(timestamp int64, span int) Snapshot {
 			table := t.table[ts]
 			snapshot = snapshot.Push(ts, table)
 		}
+
+		defer bound.Close()
 	}
 	return snapshot
 }
@@ -188,8 +188,6 @@ func (t *Timeseries) Before(timestamp int64, span int) Snapshot {
 func (t *Timeseries) After(timestamp int64, span int) Snapshot {
 	bound := t.skiplist.Seek(timestamp)
 	snapshot := make(Snapshot)
-
-	defer bound.Close()
 
 	if bound != nil {
 		ts := bound.Key().(int64)
@@ -201,6 +199,7 @@ func (t *Timeseries) After(timestamp int64, span int) Snapshot {
 			table := t.table[ts]
 			snapshot = snapshot.Push(ts, table)
 		}
+		defer bound.Close()
 	}
 	return snapshot
 }

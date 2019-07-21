@@ -13,7 +13,7 @@ type Element struct {
 // LinkedList is start from zero index
 type LinkedList struct {
 	Start  *Element
-	end    *Element
+	End    *Element
 	Length int
 }
 
@@ -31,11 +31,11 @@ func (l *LinkedList) Push(v string) {
 func (l *LinkedList) append(e *Element) {
 	if l.Length == 0 {
 		l.Start = e
-		l.end = l.Start
+		l.End = l.Start
 	} else {
-		end := l.end
+		end := l.End
 		end.Next = e
-		l.end = e
+		l.End = e
 	}
 	l.Length++
 }
@@ -43,13 +43,13 @@ func (l *LinkedList) append(e *Element) {
 // Pop from the end
 func (l *LinkedList) Pop() (*Element, error) {
 	if l.Length == 0 {
-		return nil, errors.New("LinkedList is empty")
+		return nil, errors.New("List is empty")
 	}
 
 	if l.Length == 1 {
 		popped := l.Start
 		l.Start = nil
-		l.end = nil
+		l.End = nil
 		l.Length--
 		return popped, nil
 	}
@@ -62,9 +62,9 @@ func (l *LinkedList) Pop() (*Element, error) {
 		counter--
 	}
 
-	l.end = pointer
+	l.End = pointer
 	popped := pointer.Next
-	l.end.Next = nil
+	l.End.Next = nil
 	l.Length--
 
 	return popped, nil
@@ -91,12 +91,12 @@ func (l *LinkedList) Shift(v string) {
 //  1 -> 2 -> 3
 func (l *LinkedList) Unshift() (*Element, error) {
 	if l.Length == 0 {
-		return nil, errors.New("LinkedList is empty")
+		return nil, errors.New("List is empty")
 	}
-	oldStart := l.Start
-	l.Start = oldStart.Next
-	l.Length--
-	return oldStart, nil
+	popped := l.Start
+	l.Start = popped.Next
+	l.Length = l.Length - 1
+	return popped, nil
 }
 
 // Remove an element
@@ -105,13 +105,13 @@ func (l *LinkedList) Unshift() (*Element, error) {
 // 1->3
 func (l *LinkedList) Remove(value string) error {
 	if l.Length == 0 {
-		return errors.New("LinkedList is empty")
+		return errors.New("List is empty")
 	}
 	if l.Start.Value == value {
 		l.Unshift()
 		return nil
 	}
-	if l.end.Value == value {
+	if l.End.Value == value {
 		l.Pop()
 		return nil
 	}
@@ -136,7 +136,7 @@ func (l *LinkedList) Remove(value string) error {
 // 4 -> 5
 func (l *LinkedList) Unlink(step int) error {
 	if l.Length == 0 || l.Length < step {
-		return errors.New("LinkedList is empty OR Step Not Exist")
+		return errors.New("List is empty OR Step Not Exist")
 	}
 	if step == 1 {
 		l.Unshift()
@@ -170,13 +170,13 @@ func (l *LinkedList) Unlink(step int) error {
 // 4
 func (l *LinkedList) Seek(step int) (string, error) {
 	if l.Length == 0 || l.Length < step {
-		return "", errors.New("LinkedList is empty OR Step Not Exist")
+		return "", errors.New("List is empty OR Step Not Exist")
 	}
 	if step == 1 {
 		return l.Start.Value, nil
 	}
 	if step == l.Length {
-		return l.end.Value, nil
+		return l.End.Value, nil
 	}
 	i := 1
 	current := l.Start
@@ -187,5 +187,5 @@ func (l *LinkedList) Seek(step int) (string, error) {
 		current = current.Next
 		i++
 	}
-	return "", errors.New("LinkedList is empty OR Step Not Exist")
+	return "", errors.New("List is empty OR Step Not Exist")
 }

@@ -1,6 +1,8 @@
 package queue
 
-import "github.com/go-in-memory-db/linkedlist"
+import (
+	"github.com/xfoxawy/go-in-memory-db/linkedlist"
+)
 
 // Queue struct
 type Queue struct {
@@ -20,12 +22,11 @@ func (q *Queue) Enqueue(e string) {
 
 // Dequeue get first element enterd queue
 func (q *Queue) Dequeue() string {
-	front := q.Front()
-	if front == "" {
-		return ""
+	front, err := q.Queue.Unshift()
+	if err != nil {
+		return err.Error()
 	}
-	q.Queue.Unshift()
-	return front
+	return front.Value
 }
 
 // Size return  of queue

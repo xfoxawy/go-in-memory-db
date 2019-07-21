@@ -3,7 +3,7 @@ package databases
 import (
 	"errors"
 
-	"github.com/go-in-memory-db/stack"
+	"github.com/xfoxawy/go-in-memory-db/stack"
 )
 
 // CreateStack Function
