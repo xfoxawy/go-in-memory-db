@@ -1,32 +1,48 @@
 package actions
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
-func (a *Actions) qSetHanlder() {
+func (a *Actions) qSetHanlder() string {
 	k := a.StringArray[1]
 	v := a.StringArray[2:]
 
-	queue, _ := a.Client.Dbpointer.CreateQueue(k)
+	queue, err := a.Client.Dbpointer.CreateQueue(k)
+
+	if err != nil {
+		return err.Error()
+	}
 
 	for i := range v {
 		queue.Enqueue(v[i])
 	}
 
+	return "OK"
+
 }
 
+// output bug, multiline
 func (a *Actions) qGetHandler() string {
-
 	k := a.StringArray[1]
+
 	if q, err := a.Client.Dbpointer.GetQueue(k); err == nil {
-		write(a.Client.Conn, q.Queue.Start.Value)
+
+		if q.Size() == 0 {
+			return ""
+		}
+
+		output := make([]string, 0)
 		current := q.Queue.Start
 		for current.Next != nil {
+			output = append(output, current.Value)
 			current = current.Next
-			write(a.Client.Conn, current.Value)
 		}
-		return ""
+		output = append(output, q.Queue.End.Value)
+		s, _ := json.Marshal(output)
+		return fmt.Sprintln(string(s))
 	}
 	return "Queue Does not Exist"
 }

@@ -3,7 +3,7 @@ package databases
 import (
 	"errors"
 
-	"github.com/go-in-memory-db/linkedlist"
+	"github.com/xfoxawy/go-in-memory-db/linkedlist"
 )
 
 // GetList function
@@ -12,7 +12,7 @@ func (db *Database) GetList(k string) (*linkedlist.LinkedList, error) {
 		return db.dataList[k], nil
 	}
 
-	return nil, errors.New("not found")
+	return nil, errors.New("List not found")
 
 }
 

@@ -1,10 +1,11 @@
 package databases
 
 import (
-	"github.com/go-in-memory-db/hashtable"
-	"github.com/go-in-memory-db/linkedlist"
-	"github.com/go-in-memory-db/queue"
-	"github.com/go-in-memory-db/stack"
+	"github.com/xfoxawy/go-in-memory-db/hashtable"
+	"github.com/xfoxawy/go-in-memory-db/linkedlist"
+	"github.com/xfoxawy/go-in-memory-db/queue"
+	"github.com/xfoxawy/go-in-memory-db/stack"
+	"github.com/xfoxawy/go-in-memory-db/timeseries"
 )
 
 // DatabaseInterface Inteface
@@ -27,6 +28,9 @@ type DatabaseInterface interface {
 	GetHashTable(k string) (*hashtable.HashTable, error)
 	CreateHashTable(k string) (*hashtable.HashTable, error)
 	DelHashTable(k string)
+	CreateTimeseries(k string) (*timeseries.Timeseries, error)
+	GetTimeseries(k string) (*timeseries.Timeseries, error)
+	DelTimeseries(k string)
 	Clear()
 }
 
@@ -39,33 +43,25 @@ type Database struct {
 	stack         map[string]*stack.Stack
 	queue         map[string]*queue.Queue
 	dataHashTable map[string]*hashtable.HashTable
+	timeseries    map[string]*timeseries.Timeseries
 }
 
 // CreateMasterDB fucntion
 func CreateMasterDB() *Database {
-	db := Database{
-		"master",
-		true,
-		make(map[string]string),
-		make(map[string]*linkedlist.LinkedList),
-		make(map[string]*stack.Stack),
-		make(map[string]*queue.Queue),
-		make(map[string]*hashtable.HashTable),
-	}
-	return &db
+	return CreateNewDatabase("master")
 }
 
-// GetActiveDatabase function
-func GetActiveDatabase(key string) *Database {
+// CreateNewDatabase function
+func CreateNewDatabase(key string) *Database {
 	db := Database{
 		key,
 		true,
 		make(map[string]string),
-
 		make(map[string]*linkedlist.LinkedList),
 		make(map[string]*stack.Stack),
 		make(map[string]*queue.Queue),
 		make(map[string]*hashtable.HashTable),
+		make(map[string]*timeseries.Timeseries),
 	}
 	return &db
 }

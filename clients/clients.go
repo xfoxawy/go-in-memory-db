@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"github.com/go-in-memory-db/databases"
-	"github.com/redcon"
+	"github.com/tidwall/redcon"
+	"github.com/xfoxawy/go-in-memory-db/databases"
 )
 
 type Client struct {
@@ -10,12 +10,6 @@ type Client struct {
 	Conn      redcon.Conn
 	Dbpointer databases.DatabaseInterface
 }
-
-// MasterDb placeholder
-// All Databases
-var (
-	MasterDb = databases.CreateMasterDB()
-)
 
 var (
 	Databases = map[string]*databases.Database{"master": databases.CreateMasterDB()}
@@ -31,7 +25,7 @@ func ResolveClinet(conn redcon.Conn) *Client {
 		Connections[addr] = &Client{
 			addr,
 			conn,
-			MasterDb,
+			Databases["master"],
 		}
 	}
 	return Connections[addr]
@@ -45,7 +39,7 @@ func (c *Client) UseNewDatabase(key string) {
 	if db, ok := Databases[key]; ok {
 		c.Dbpointer = db
 	} else {
-		Databases[key] = databases.GetActiveDatabase(key)
+		Databases[key] = databases.CreateNewDatabase(key)
 		c.Dbpointer = Databases[key]
 	}
 }

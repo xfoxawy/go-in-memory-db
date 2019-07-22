@@ -4,10 +4,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/go-in-memory-db/hashtable"
-	"github.com/go-in-memory-db/linkedlist"
-	"github.com/go-in-memory-db/queue"
-	"github.com/go-in-memory-db/stack"
+	"github.com/xfoxawy/go-in-memory-db/hashtable"
+	"github.com/xfoxawy/go-in-memory-db/linkedlist"
+	"github.com/xfoxawy/go-in-memory-db/queue"
+	"github.com/xfoxawy/go-in-memory-db/stack"
 )
 
 var db *Database

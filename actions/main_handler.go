@@ -51,7 +51,7 @@ func (a *Actions) clearHandler() string {
 	return "OK"
 }
 
-func (a *Actions) witchHandler() string {
+func (a *Actions) whichHandler() string {
 	return a.Client.Dbpointer.Name()
 }
 
@@ -75,9 +75,9 @@ func (a *Actions) showHandler() string {
 	return content.String()
 }
 
-func (a *Actions) byeHandler() {
+func (a *Actions) byeHandler() string {
 	a.Client.Conn.Close()
-	return
+	return ""
 }
 
 func (a *Actions) helpHandler() string {

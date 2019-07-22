@@ -1,6 +1,8 @@
 package actions
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -20,18 +22,25 @@ func (a *Actions) lSetHandler() string {
 // test it
 func (a *Actions) lGetHandler() string {
 	k := a.StringArray[1]
-	v, err := a.Client.Dbpointer.GetList(k)
+	l, err := a.Client.Dbpointer.GetList(k)
 
-	if err != nil || v.Start == nil {
-		return "empty or not exit"
+	if err != nil {
+		return err.Error()
 	}
-	write(a.Client.Conn, v.Start.Value)
-	current := v.Start
+
+	if l.Start == nil {
+		return ""
+	}
+
+	output := make([]string, 0)
+	current := l.Start
 	for current.Next != nil {
+		output = append(output, current.Value)
 		current = current.Next
-		write(a.Client.Conn, current.Value)
 	}
-	return ""
+	output = append(output, l.End.Value)
+	s, _ := json.Marshal(output)
+	return fmt.Sprintln(string(s))
 }
 
 func (a *Actions) lDelHandler() string {

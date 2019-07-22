@@ -119,32 +119,32 @@ LSEEK key index
 ```
 to set hashtable
  ```
- HSET key 
- OR 
- HSET key value1 value2 etc...
- ```
+HSET key 
+OR 
+HSET key value1 value2 etc...
+```
 
- to get data from hashtable
- ```
- HGET key
- ```
+to get data from hashtable
+```
+HGET key
+```
 
- to delete hashtable
- ```
- HDEL key
- ```
+to delete hashtable
+```
+HDEL key
+```
 
- to push element in hashtable 
- ```
- HPUSH key value1 value2 etc...
- ```
+to push element in hashtable 
+```
+HPUSH key value1 value2 etc...
+```
 
- to remove element from hashtable
- ```
- HRM key value1 value2 etc...
- OR
- HREMOVE key value1 value2 etc...
- ```
+to remove element from hashtable
+```
+HRM key value1 value2 etc...
+OR
+HREMOVE key value1 value2 etc...
+```
 to dump data to screen
 ```
 DUMP
