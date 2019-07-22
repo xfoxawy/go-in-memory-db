@@ -75,9 +75,9 @@ func (a *Actions) showHandler() string {
 	return content.String()
 }
 
-func (a *Actions) byeHandler() {
+func (a *Actions) byeHandler() string {
 	a.Client.Conn.Close()
-	return
+	return ""
 }
 
 func (a *Actions) helpHandler() string {
