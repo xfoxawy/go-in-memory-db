@@ -20,11 +20,11 @@ func (a *Actions) sGetHandler() string {
 
 	k := a.StringArray[1]
 	if s, err := a.Client.Dbpointer.GetStack(k); err == nil {
-		write(a.Client.Conn, s.Stack.Start.Value)
+		a.Client.Conn.WriteString(s.Stack.Start.Value)
 		current := s.Stack.Start
 		for current.Next != nil {
 			current = current.Next
-			write(a.Client.Conn, current.Value)
+			a.Client.Conn.WriteString(current.Value)
 		}
 		return ""
 	}
