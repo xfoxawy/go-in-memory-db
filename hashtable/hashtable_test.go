@@ -1,6 +1,8 @@
 package hashtable
 
-import "testing"
+import (
+	"testing"
+)
 
 var hash *HashTable
 
@@ -28,4 +30,21 @@ func TestRemove(t *testing.T) {
 		t.Error("expected", beforeRemove-1, "got", afterRemove)
 	}
 
+}
+
+func BenchmarkPush(b *testing.B) {
+	var i int
+	for n := 0; n < b.N; n++ {
+		hash.Push("key"+string(i), "value"+string(i))
+		i++
+	}
+}
+
+func BenchmarkRemove(b *testing.B) {
+	var i int
+	for n := 0; n < b.N; n++ {
+		hash.Push("key"+string(i), "value"+string(i))
+		hash.Remove("key" + string(i))
+		i++
+	}
 }
