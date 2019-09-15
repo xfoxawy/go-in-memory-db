@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"fmt"
 	"log"
 
 	"github.com/go-in-memory-db/actions"
@@ -13,10 +15,17 @@ var addr = ":6380"
 func main() {
 
 	go log.Printf("started server at %s", addr)
-	err := redcon.ListenAndServe(addr,
+	cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	config := &tls.Config{Certificates: []tls.Certificate{cer}}
+	err = redcon.ListenAndServeTLS(addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
 
 			var stringCommands []string
+			fmt.Println(cmd.Args)
 
 			for _, v := range cmd.Args {
 				stringCommands = append(stringCommands, string(v))
@@ -36,6 +45,7 @@ func main() {
 			// this is called when the connection has been closed
 			// log.Printf("closed: %s, err: %v", conn.RemoteAddr(), err)
 		},
+		config,
 	)
 	if err != nil {
 		log.Fatal(err)
