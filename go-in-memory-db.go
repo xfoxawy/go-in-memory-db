@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"fmt"
 	"log"
 
 	"github.com/go-in-memory-db/actions"
@@ -25,7 +24,6 @@ func main() {
 		func(conn redcon.Conn, cmd redcon.Command) {
 
 			var stringCommands []string
-			fmt.Println(cmd.Args)
 
 			for _, v := range cmd.Args {
 				stringCommands = append(stringCommands, string(v))

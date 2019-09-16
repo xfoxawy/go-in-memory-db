@@ -47,7 +47,7 @@ go test -cover ./...
 
 then through Telnet or any TCP connection
 ```
-telnet 127.0.0.1 8080
+openssl s_client -starttls smtp -connect 127.0.0.1:8080
 ```
 ### Usage
 to SET data 
