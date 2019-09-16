@@ -24,10 +24,24 @@ Say what the step will be
 git clone 
 ```
 
+Generate private key (.key)
+
+```
+openssl genrsa -out server.key 2048
+
+openssl ecparam -genkey -name secp384r1 -out server.key
+```
+
+Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
+
+```
+openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
+```
+
 And 
 
 ```
-go run go-in-memory-db.go --port=8080 (default is 8080)
+go run go-in-memory-db.go -ssl=true -private-key=server.key -public-key=server.crt --port=8080 (default is 8080)
 ```
 OR
 ```
@@ -35,7 +49,7 @@ go build go-in-memory-db.go
 ```
 then 
 ```
-./go-in-memory-db --port=8080 (default is 8080)
+./go-in-memory-db -ssl=true -private-key=server.key -public-key=server.crt --port=8080 (default is 8080)
 ```
 
 to run tests
