@@ -74,7 +74,7 @@ func (a *Actions) lShiftHandler() string {
 	var v string
 
 	if len(a.StringArray) == 2 {
-		v = "NIL"
+		return "You can not shift empty string"
 	} else {
 		v = strings.Join(a.StringArray[2:], "")
 	}
